@@ -9,10 +9,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
+import android.media.CameraProfile;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.Display;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -47,14 +52,21 @@ import com.google.mlkit.vision.objects.ObjectDetector;
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase;
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
+    private static final int MEMORY_DELAY = 10;
     public static ThingsBase base = new ThingsBase();
 
 
@@ -74,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     private  final int UPDATE_RATE = 5;
     private int frameCount = 0;
+    private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
 
 
 //    public void onIR(View view) {
@@ -153,44 +166,60 @@ public class MainActivity extends AppCompatActivity {
                 ProcessCameraProvider cameraProvider = null;
                 try {
                     cameraProvider = cameraProviderFuture.get();
-                    LinkedList<ObjectDetectionResult> barcodeList = new LinkedList<>();
                     imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(MainActivity.this),
-                            new ImageAnalysis.Analyzer() {
-                                @Override
-                                public void analyze(@NonNull ImageProxy image) {
-                                    @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
-                                    Image img = image.getImage();
-                                    bitmap = translator.translateYUV(img, MainActivity.this);
-                                    InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
-//                                    LinkedList<ObjectDetectionResult> barcodeList = new LinkedList<>();
+                            image -> {
+                                @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
+                                Image img = image.getImage();
+                                bitmap = translator.translateYUV(img, MainActivity.this);
+                                InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
 
-                                    if (frameCount % UPDATE_RATE == 0) {
-                                        barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
-//                                            if (!barcodes.isEmpty()) {
-//                                                barcodes.forEach((barcode) -> {
-//                                                    ObjectDetectionResult detectionResult = new ObjectDetectionResult();
-//                                                    detectionResult.setBarcodeMessage(barcode.getRawValue());
-//                                                    detectionResult.setBarcode(barcode);
-//                                                    barcodeList.add(detectionResult);
-//                                                });
-//                                            }
-                                        }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
-                                    }
-
-                                    preview.setRotation(image.getImageInfo().getRotationDegrees());
-                                    if (!barcodeList.isEmpty()) {
-                                        barcodeList.forEach((detectionResult) -> {
-                                            preview.setImageBitmap(DetectionBound.drawDetection(
-                                                    bitmap
-                                                    , detectionResult.getBarcodeMessage()
-                                                    , detectionResult.getBarcode().getBoundingBox()));
-                                        });
+                                for (ObjectDetectionResult obj: barcodeList.keySet()) {
+                                    int value = barcodeList.get(obj);
+                                    if (value == MEMORY_DELAY) {
+                                        barcodeList.remove(obj);
                                     } else {
-                                        preview.setImageBitmap(bitmap);
+                                        barcodeList.put(obj, value+1);
                                     }
-
-                                    frameCount++;
                                 }
+
+                                if (frameCount % UPDATE_RATE == 0) {
+                                    barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
+
+                                        if (!barcodes.isEmpty()) {
+
+                                                for (Barcode barcode : barcodes) {
+                                                    ObjectDetectionResult detectionResult = new ObjectDetectionResult();
+                                                    detectionResult.setBarcodeMessage(barcode.getRawValue());
+                                                    detectionResult.setBarcode(barcode);
+                                                    barcodeList.put(detectionResult, 0);                                                }
+                                        }
+                                    }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
+                                }
+
+                                preview.setRotation(image.getImageInfo().getRotationDegrees());
+                                if (!barcodeList.isEmpty()) {
+                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
+                                        DetectionBound.drawDetection(bitmap, detectionResult.getBarcode(),
+                                                detectionResult.getBarcodeMessage(),
+                                                (int)preview.getRotation());
+
+                                        CameraManager cameraManager = (CameraManager) MainActivity.this.getSystemService(CAMERA_SERVICE);
+                                        try {
+                                            int sensorOrientation = cameraManager
+                                                    .getCameraCharacteristics("1")
+                                                    .get(CameraCharacteristics.SENSOR_ORIENTATION);
+                                            Log.println(Log.DEBUG, TAG, Integer.toString(sensorOrientation));
+                                        } catch (CameraAccessException e) {
+                                            throw new RuntimeException(e);
+                                        }
+
+
+                                    }
+                                }
+                                preview.setImageBitmap(bitmap);
+
+                                image.close();
+                                frameCount++;
                             });
 
                     cameraProvider.bindToLifecycle(MainActivity.this, cameraSelector, imageAnalysis);

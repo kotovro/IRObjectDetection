@@ -14,6 +14,7 @@ import java.util.Objects;
 
 public class DetectionBound {
     static int COLOR = Color.BLUE;
+    static  int COLOR2 = Color.RED;
 
 //    public static Bitmap drawDetection(Bitmap bitmap, String id, Barcode barcode) {
 //        if (barcode == null) {
@@ -28,38 +29,30 @@ public class DetectionBound {
 //
 //        return drawDetection(bitmap, intID, barcode.getBoundingBox());
 //    }
-    public static Bitmap drawDetection(Bitmap bitmap, String barcodeContents, Rect barcodeBounds) {
-
-        int intID = -1;
-        try {
-            intID = Integer.parseInt(barcodeContents);
-        } catch (Exception e) {
-
-        }
-        if (intID > 0) {
-            Canvas canvas = new Canvas(bitmap);
-            Paint paint = new Paint();
-            paint.setColor(COLOR);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(5);
+    public static Bitmap drawDetection(Bitmap bitmap, Barcode barcode, String barcodeContents, int angle) {
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint();
+        paint.setColor(COLOR);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
 
 
-            assert barcodeBounds != null;
-            canvas.drawRect(barcodeBounds, paint);
+        canvas.rotate(angle);
+        paint.setColor(COLOR2);
+        canvas.drawLine(barcode.getCornerPoints()[0].x, barcode.getCornerPoints()[0].y, barcode.getCornerPoints()[1].x, barcode.getCornerPoints()[1].y, paint);
+        canvas.drawLine(barcode.getCornerPoints()[1].x, barcode.getCornerPoints()[1].y, barcode.getCornerPoints()[2].x, barcode.getCornerPoints()[2].y, paint);
+        canvas.drawLine(barcode.getCornerPoints()[2].x, barcode.getCornerPoints()[2].y, barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y, paint);
+        canvas.drawLine(barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y, barcode.getCornerPoints()[0].x, barcode.getCornerPoints()[0].y, paint);
+        paint.setTextSize(50);
+        paint.setColor(COLOR);
+        Thing p = null;
 
-            paint.setTextSize(50);
-            paint.setColor(COLOR);
-            Thing p = null;
-//            if (id > 0) {
-//                p = MainActivity.base.getThing(id);
-//            }
 
-            canvas.drawText((Objects.equals(barcodeContents, "") ? barcodeContents : "Неизвестный объект"),
-                    barcodeBounds.right + 10, barcodeBounds.top + 20, paint);
+        canvas.drawText((Objects.equals(barcodeContents, "") ? "Неизвестный объект": barcodeContents),
+                barcode.getCornerPoints()[0].x + 10,  barcode.getCornerPoints()[0].y + 20, paint);
 //            canvas.drawText((Objects.equals(barcodeContents, "") ? "" : p.getInfo()),
 //                    barcodeBounds.right + 10, barcodeBounds.top + 160, paint);
-        }
-
+        canvas.rotate(-angle);
         return bitmap;
     }
 }
