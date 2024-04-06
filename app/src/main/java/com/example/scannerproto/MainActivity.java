@@ -47,6 +47,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase;
@@ -78,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CAMERA = 100;
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private ObjectDetector objectDetector;
+
+    private DetectedObject detObj;
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
 
@@ -119,8 +122,12 @@ public class MainActivity extends AppCompatActivity {
                                 Barcode.FORMAT_AZTEC)
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
-//        ObjectDetectorOptions objOptions = ObjectDetectorOptionsBase();
-//        objectDetector = ObjectDetection.getClient(ObjectDetectorOptionsBase());
+        ObjectDetectorOptions options =
+                new ObjectDetectorOptions.Builder()
+                        .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+                        .enableClassification()  // Optional
+                        .build();
+        objectDetector = ObjectDetection.getClient(options);
         preview = findViewById(R.id.preview);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
@@ -173,6 +180,13 @@ public class MainActivity extends AppCompatActivity {
                                 bitmap = translator.translateYUV(img, MainActivity.this);
                                 InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
 
+                                objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
+                                    if (!detectedObjects.isEmpty()) {
+                                        if (!detectedObjects.get(0).equals(detObj)) {
+                                            detObj = detectedObjects.get(0);
+                                        }
+                                    }
+                                }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                                 for (ObjectDetectionResult obj: barcodeList.keySet()) {
                                     int value = barcodeList.get(obj);
                                     if (value == MEMORY_DELAY) {
@@ -182,11 +196,17 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
 
-                                if (frameCount % UPDATE_RATE == 0) {
+                                if ((frameCount % UPDATE_RATE == 0) && (null != detObj)) {
+                                    Log.println(Log.DEBUG, TAG, detObj.toString() + "111u9ipodcesaqoidawoy");
+                                    Rect temp = detObj.getBoundingBox();
+//                                    inputImage = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
+//                                                    temp.left,
+//                                                    temp.top,
+//                                                    temp.width(),
+//                                                    temp.height()),
+//                                                    image.getImageInfo().getRotationDegrees());
                                     barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
-
                                         if (!barcodes.isEmpty()) {
-
                                                 for (Barcode barcode : barcodes) {
                                                     ObjectDetectionResult detectionResult = new ObjectDetectionResult();
                                                     detectionResult.setBarcodeMessage(barcode.getRawValue());
@@ -204,14 +224,7 @@ public class MainActivity extends AppCompatActivity {
                                                 (int)preview.getRotation());
 
                                         CameraManager cameraManager = (CameraManager) MainActivity.this.getSystemService(CAMERA_SERVICE);
-                                        try {
-                                            int sensorOrientation = cameraManager
-                                                    .getCameraCharacteristics("1")
-                                                    .get(CameraCharacteristics.SENSOR_ORIENTATION);
-                                            Log.println(Log.DEBUG, TAG, Integer.toString(sensorOrientation));
-                                        } catch (CameraAccessException e) {
-                                            throw new RuntimeException(e);
-                                        }
+
 
 
                                     }
