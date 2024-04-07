@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
 
-    private  final int UPDATE_RATE = 5;
+    private  final int UPDATE_RATE = 2;
     private int frameCount = 0;
     private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
 
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         ObjectDetectorOptions options =
                 new ObjectDetectorOptions.Builder()
                         .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
-                        .enableClassification()  // Optional
+//                        .enableClassification()  // Optional
                         .build();
         objectDetector = ObjectDetection.getClient(options);
         preview = findViewById(R.id.preview);
@@ -180,13 +180,7 @@ public class MainActivity extends AppCompatActivity {
                                 bitmap = translator.translateYUV(img, MainActivity.this);
                                 InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
 
-                                objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
-                                    if (!detectedObjects.isEmpty()) {
-                                        if (!detectedObjects.get(0).equals(detObj)) {
-                                            detObj = detectedObjects.get(0);
-                                        }
-                                    }
-                                }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
+
                                 for (ObjectDetectionResult obj: barcodeList.keySet()) {
                                     int value = barcodeList.get(obj);
                                     if (value == MEMORY_DELAY) {
@@ -196,15 +190,28 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
 
-                                if ((frameCount % UPDATE_RATE == 0) && (null != detObj)) {
-                                    Log.println(Log.DEBUG, TAG, detObj.toString() + "111u9ipodcesaqoidawoy");
-                                    Rect temp = detObj.getBoundingBox();
-//                                    inputImage = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
-//                                                    temp.left,
-//                                                    temp.top,
-//                                                    temp.width(),
-//                                                    temp.height()),
-//                                                    image.getImageInfo().getRotationDegrees());
+                                if ((frameCount % UPDATE_RATE == 0)) {
+                                    detObj = null;
+//                                    Log.println(Log.DEBUG, TAG, detObj.toString() + "111u9ipodcesaqoidawoy");
+                                    objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
+                                        if (!detectedObjects.isEmpty()) {
+                                            detObj = detectedObjects.get(0);
+                                        }
+                                    }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
+
+                                    if (detObj != null) {
+                                        Rect temp = detObj.getBoundingBox();
+                                        inputImage = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
+                                                        temp.left,
+                                                        temp.top,
+                                                        temp.width(),
+                                                        temp.height()),
+                                                        image.getImageInfo().getRotationDegrees());
+                                        Log.println(Log.VERBOSE, TAG, inputImage.getWidth() + " " + inputImage.getHeight());
+                                        Log.println(Log.VERBOSE, TAG, temp.left + " " + " " + temp.top + " " + temp.width() + " " + temp.height());
+                                    } else {
+                                        Log.println(Log.VERBOSE, TAG, "No obj detected");
+                                    }
                                     barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
                                         if (!barcodes.isEmpty()) {
                                                 for (Barcode barcode : barcodes) {
@@ -217,17 +224,14 @@ public class MainActivity extends AppCompatActivity {
                                 }
 
                                 preview.setRotation(image.getImageInfo().getRotationDegrees());
-                                if (!barcodeList.isEmpty()) {
-                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
-                                        DetectionBound.drawDetection(bitmap, detectionResult.getBarcode(),
-                                                detectionResult.getBarcodeMessage(),
-                                                (int)preview.getRotation());
-
-                                        CameraManager cameraManager = (CameraManager) MainActivity.this.getSystemService(CAMERA_SERVICE);
-
-
-
-                                    }
+                                if (!barcodeList.isEmpty() || detObj != null) {
+//                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
+//                                        if (detObj != null) {
+                                    DetectionBound.drawDetection(bitmap, detObj,
+                                            barcodeList.keySet(),
+                                            (int) preview.getRotation());
+//                                        }
+//                                     }
                                 }
                                 preview.setImageBitmap(bitmap);
 
