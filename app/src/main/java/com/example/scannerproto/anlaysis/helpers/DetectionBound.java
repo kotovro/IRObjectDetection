@@ -10,6 +10,7 @@ import com.example.scannerproto.MainActivity;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.objects.DetectedObject;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 //import com.google.mlkit.vision.face.Face;
@@ -18,20 +19,7 @@ public class DetectionBound {
     static int COLOR = Color.BLUE;
     static  int COLOR2 = Color.RED;
 
-//    public static Bitmap drawDetection(Bitmap bitmap, String id, Barcode barcode) {
-//        if (barcode == null) {
-//            return bitmap;
-//        }
-//        int intID = -1;
-//        try {
-//            intID = Integer.parseInt(id);
-//        } catch (Exception e) {
-//
-//        }
-//
-//        return drawDetection(bitmap, intID, barcode.getBoundingBox());
-//    }
-    public static Bitmap drawDetection(Bitmap frame, DetectedObject obj, Set<ObjectDetectionResult> barcodes, int rotationAngle) {
+    public static Bitmap drawDetection(Bitmap frame, DetectedObject obj, List<ObjectDetectionResult> barcodes, int rotationAngle) {
         Canvas canvas = new Canvas(frame);
         Paint paint = new Paint();
         paint.setColor(COLOR);
@@ -66,6 +54,6 @@ public class DetectionBound {
         paint.setColor(COLOR);
 
         canvas.drawText((Objects.equals(barcodeContents, "") ? "Неизвестный объект": barcodeContents),
-                barcode.getCornerPoints()[0].x + 10,  barcode.getCornerPoints()[0].y + 20, paint);
+                barcode.getCornerPoints()[0].x + shiftX + 10,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
     }
 }

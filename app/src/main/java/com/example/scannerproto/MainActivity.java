@@ -4,23 +4,14 @@ import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.Rect;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
-import android.media.CameraProfile;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
-import android.view.Display;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -29,18 +20,13 @@ import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageProxy;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.scannerproto.anlaysis.helpers.BarcodeScanningActivity;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
 import com.example.scannerproto.anlaysis.helpers.ThingsBase;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
@@ -50,58 +36,28 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
-import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase;
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static final int MEMORY_DELAY = 10;
     public static ThingsBase base = new ThingsBase();
-
-
     private ImageView preview;
-
-    private TextView output;
-    private  BarcodeScanningActivity barCodeActivity = new BarcodeScanningActivity();
     private @SuppressLint("RestrictedApi") ImageAnalysis imageAnalysis;
     private static final int PERMISSION_REQUEST_CAMERA = 100;
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private ObjectDetector objectDetector;
-
     private DetectedObject detObj;
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
-
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
-
-    private  final int UPDATE_RATE = 2;
+    private  final int UPDATE_RATE = 5;
     private int frameCount = 0;
-    private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
-
-
-//    public void onIR(View view) {
-//        //Toast.makeText(this, "IR ->", Toast.LENGTH_SHORT).show();
-//        Intent intent = new Intent(this, MainActivity.class);
-//        startActivity(intent);
-//    }
-//    public void onQRScanner(View view) {
-//        //Toast.makeText(this, "QR ->", Toast.LENGTH_SHORT).show();
-//        Intent intent = new Intent(this, QRScanActivity.class);
-//        startActivity(intent);
-//    }
+    private List<ObjectDetectionResult> barcodeList = new CopyOnWriteArrayList<>();
 
 
     @SuppressLint("MissingInflatedId")
@@ -110,11 +66,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
         BarcodeScannerOptions bOptions =
                 new BarcodeScannerOptions.Builder()
                         .setBarcodeFormats(
@@ -160,12 +111,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
     }
-
 
     private void initializeCamera() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
@@ -180,47 +129,39 @@ public class MainActivity extends AppCompatActivity {
                                 bitmap = translator.translateYUV(img, MainActivity.this);
                                 InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
 
-
-                                for (ObjectDetectionResult obj: barcodeList.keySet()) {
-                                    int value = barcodeList.get(obj);
-                                    if (value == MEMORY_DELAY) {
-                                        barcodeList.remove(obj);
-                                    } else {
-                                        barcodeList.put(obj, value+1);
-                                    }
-                                }
-
                                 if ((frameCount % UPDATE_RATE == 0)) {
-                                    detObj = null;
-//                                    Log.println(Log.DEBUG, TAG, detObj.toString() + "111u9ipodcesaqoidawoy");
                                     objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
+                                        detObj = null;
+                                        InputImage tempInput = inputImage;
                                         if (!detectedObjects.isEmpty()) {
                                             detObj = detectedObjects.get(0);
+                                            if (detObj != null) {
+                                                Rect temp = detObj.getBoundingBox();
+                                                tempInput = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
+                                                                temp.left,
+                                                                temp.top,
+                                                                temp.width(),
+                                                                temp.height()),
+                                                        image.getImageInfo().getRotationDegrees());
+                                                Log.println(Log.VERBOSE, TAG, inputImage.getWidth() + " " + inputImage.getHeight());
+                                                Log.println(Log.VERBOSE, TAG, temp.left + " " + " " + temp.top + " " + temp.width() + " " + temp.height());
+                                            } else {
+                                                Log.println(Log.VERBOSE, TAG, "No obj detected");
+                                            }
+                                            barcodeScanner.process(tempInput).addOnSuccessListener(barcodes -> {
+                                                barcodeList.clear();
+                                                if (!barcodes.isEmpty()) {
+                                                    for (Barcode barcode : barcodes) {
+                                                        ObjectDetectionResult detectionResult = new ObjectDetectionResult();
+                                                        detectionResult.setBarcodeMessage(barcode.getRawValue());
+                                                        detectionResult.setBarcode(barcode);
+                                                        barcodeList.add(detectionResult);                                                }
+                                                }
+                                            }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                                         }
                                     }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
 
-                                    if (detObj != null) {
-                                        Rect temp = detObj.getBoundingBox();
-                                        inputImage = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
-                                                        temp.left,
-                                                        temp.top,
-                                                        temp.width(),
-                                                        temp.height()),
-                                                        image.getImageInfo().getRotationDegrees());
-                                        Log.println(Log.VERBOSE, TAG, inputImage.getWidth() + " " + inputImage.getHeight());
-                                        Log.println(Log.VERBOSE, TAG, temp.left + " " + " " + temp.top + " " + temp.width() + " " + temp.height());
-                                    } else {
-                                        Log.println(Log.VERBOSE, TAG, "No obj detected");
-                                    }
-                                    barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
-                                        if (!barcodes.isEmpty()) {
-                                                for (Barcode barcode : barcodes) {
-                                                    ObjectDetectionResult detectionResult = new ObjectDetectionResult();
-                                                    detectionResult.setBarcodeMessage(barcode.getRawValue());
-                                                    detectionResult.setBarcode(barcode);
-                                                    barcodeList.put(detectionResult, 0);                                                }
-                                        }
-                                    }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
+
                                 }
 
                                 preview.setRotation(image.getImageInfo().getRotationDegrees());
@@ -228,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
 //                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
 //                                        if (detObj != null) {
                                     DetectionBound.drawDetection(bitmap, detObj,
-                                            barcodeList.keySet(),
+                                            barcodeList,
                                             (int) preview.getRotation());
 //                                        }
 //                                     }
