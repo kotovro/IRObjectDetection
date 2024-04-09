@@ -23,6 +23,11 @@ public class ObjectDetectionResult implements Comparable<ObjectDetectionResult>{
         this.barcode = barcode;
     }
 
+    public IObjectInfoGetter infoGetter;
+
+    public ObjectDetectionResult(IObjectInfoGetter infoGetter) {
+        this.infoGetter = infoGetter;
+    }
 
     public void setBarcodeMessage(String message) {
         this.barcodeMessage = message;

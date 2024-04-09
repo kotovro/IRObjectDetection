@@ -1,12 +1,16 @@
 package com.example.scannerproto.anlaysis.helpers;
 
+import static android.content.ContentValues.TAG;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 
 import com.example.scannerproto.MainActivity;
+import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.objects.DetectedObject;
 
@@ -19,7 +23,7 @@ public class DetectionBound {
     static int COLOR = Color.BLUE;
     static  int COLOR2 = Color.RED;
 
-    public static Bitmap drawDetection(Bitmap frame, DetectedObject obj, List<ObjectDetectionResult> barcodes, int rotationAngle) {
+    public static Bitmap drawDetection(Bitmap frame, DetectedObject obj,  List<ObjectDetectionResult> barcodes, List<Thing> objectsInfo, int rotationAngle) {
         Canvas canvas = new Canvas(frame);
         Paint paint = new Paint();
         paint.setColor(COLOR);
@@ -34,13 +38,15 @@ public class DetectionBound {
             shiftX = obj.getBoundingBox().left;
             shiftY = obj.getBoundingBox().top;
         }
-
+        int i = 0;
         for (ObjectDetectionResult code: barcodes) {
-            drawBarcode(canvas, code.getBarcode(), code.getBarcodeMessage(), shiftX, shiftY);
+            Log.println(Log.VERBOSE, TAG, Boolean.toString(objectsInfo.get(0) == null));
+            drawBarcode(canvas, code.getBarcode(), objectsInfo.get(i), shiftX, shiftY);
+            i++;
         }
         return frame;
     }
-    public static void drawBarcode(Canvas canvas, Barcode barcode, String barcodeContents,int shiftX, int shiftY) {
+    public static void drawBarcode(Canvas canvas, Barcode barcode, Thing objectInfo, int shiftX, int shiftY) {
         Paint paint = new Paint();
         paint.setColor(COLOR);
         paint.setStyle(Paint.Style.STROKE);
@@ -53,7 +59,9 @@ public class DetectionBound {
         paint.setTextSize(50);
         paint.setColor(COLOR);
 
-        canvas.drawText((Objects.equals(barcodeContents, "") ? "Неизвестный объект": barcodeContents),
-                barcode.getCornerPoints()[0].x + shiftX + 10,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
+        canvas.drawText((Objects.equals(objectInfo, "") ? "Неизвестный объект": objectInfo.getId()),
+                barcode.getCornerPoints()[0].x + shiftX + 20,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
+        canvas.drawText((Objects.equals(objectInfo, "") ? "Нет информации": objectInfo.getInfo()),
+                barcode.getCornerPoints()[0].x + shiftX,  barcode.getCornerPoints()[0].y + shiftY + 70, paint);
     }
 }

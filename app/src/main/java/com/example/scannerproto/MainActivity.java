@@ -25,8 +25,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
+import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
-import com.example.scannerproto.anlaysis.helpers.ThingsBase;
+import com.example.scannerproto.anlaysis.helpers.mockdb.SimpleObjectInfoGetter;
+import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
@@ -38,13 +40,14 @@ import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
-    public static ThingsBase base = new ThingsBase();
+
     private ImageView preview;
     private @SuppressLint("RestrictedApi") ImageAnalysis imageAnalysis;
     private static final int PERMISSION_REQUEST_CAMERA = 100;
@@ -53,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private DetectedObject detObj;
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
+    private final static IObjectInfoGetter infoGetter = new SimpleObjectInfoGetter();
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
     private  final int UPDATE_RATE = 5;
@@ -152,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                                                 barcodeList.clear();
                                                 if (!barcodes.isEmpty()) {
                                                     for (Barcode barcode : barcodes) {
-                                                        ObjectDetectionResult detectionResult = new ObjectDetectionResult();
+                                                        ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
                                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
                                                         detectionResult.setBarcode(barcode);
                                                         barcodeList.add(detectionResult);                                                }
@@ -168,8 +172,15 @@ public class MainActivity extends AppCompatActivity {
                                 if (!barcodeList.isEmpty() || detObj != null) {
 //                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
 //                                        if (detObj != null) {
+                                    List<Thing> curInfo = new LinkedList<>();
+                                    for (ObjectDetectionResult bCode: barcodeList) {
+                                        Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
+                                        Log.println(Log.WARN, TAG, bCode.getBarcodeMessage());
+                                        curInfo.add(info);
+                                    }
                                     DetectionBound.drawDetection(bitmap, detObj,
                                             barcodeList,
+                                            curInfo,
                                             (int) preview.getRotation());
 //                                        }
 //                                     }
