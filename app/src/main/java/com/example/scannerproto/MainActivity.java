@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -11,6 +12,7 @@ import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -100,6 +102,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onAdd(View view){
+        Intent intent = new Intent(this, AddObjectActivity.class);
+        startActivity(intent);
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,

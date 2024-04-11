@@ -17,6 +17,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ScannerProto"
         tools:targetApi="31">
+        <activity android:name=".AddObjectActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
