@@ -23,7 +23,7 @@ public class DetectionBound {
     static int COLOR = Color.BLUE;
     static  int COLOR2 = Color.RED;
 
-    public static Bitmap drawDetection(Bitmap frame, DetectedObject obj,  List<ObjectDetectionResult> barcodes, List<Thing> objectsInfo, int rotationAngle) {
+    public static Bitmap drawDetection(Bitmap frame, List<DetectedObject> obj,  List<ObjectDetectionResult> barcodes, List<Thing> objectsInfo, int rotationAngle) {
         Canvas canvas = new Canvas(frame);
         Paint paint = new Paint();
         paint.setColor(COLOR);
@@ -32,11 +32,11 @@ public class DetectionBound {
         int shiftX = 0;
         int shiftY = 0;
         if (obj != null) {
-            canvas.rotate(rotationAngle);
-            paint.setColor(COLOR2);
-            canvas.drawRect(obj.getBoundingBox(), paint);
-            shiftX = obj.getBoundingBox().left;
-            shiftY = obj.getBoundingBox().top;
+//            canvas.rotate(rotationAngle);
+//            paint.setColor(COLOR2);
+//            canvas.drawRect(obj.getBoundingBox(), paint);
+//            shiftX = obj.getBoundingBox().left;
+//            shiftY = obj.getBoundingBox().top;
         }
         int i = 0;
         for (ObjectDetectionResult code: barcodes) {
@@ -46,6 +46,14 @@ public class DetectionBound {
         }
         return frame;
     }
+
+    public static void drawBoundingBox(Canvas canvas, DetectedObject obj, Paint paint, int rotationAngle){
+            canvas.rotate(rotationAngle);
+            paint.setColor(COLOR2);
+            canvas.drawRect(obj.getBoundingBox(), paint);
+    }
+
+
     public static void drawBarcode(Canvas canvas, Barcode barcode, Thing objectInfo, int shiftX, int shiftY) {
         Paint paint = new Paint();
         paint.setColor(COLOR);
@@ -59,9 +67,42 @@ public class DetectionBound {
         paint.setTextSize(50);
         paint.setColor(COLOR);
 
-        canvas.drawText((Objects.equals(objectInfo, "") ? "Неизвестный объект": objectInfo.getId()),
+        canvas.drawText((Objects.equals(objectInfo, null) ? "Неизвестный объект": objectInfo.getId()),
                 barcode.getCornerPoints()[0].x + shiftX + 20,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
-        canvas.drawText((Objects.equals(objectInfo, "") ? "Нет информации": objectInfo.getInfo()),
+        canvas.drawText((Objects.equals(objectInfo, null) ? "Нет информации": objectInfo.getInfo()),
                 barcode.getCornerPoints()[0].x + shiftX,  barcode.getCornerPoints()[0].y + shiftY + 70, paint);
+    }
+
+    public static void drawObjectDetection(Bitmap frame, List<DetectedObject> detObjects, int rotation) {
+        Canvas canvas = new Canvas(frame);
+        Paint paint = new Paint();
+        paint.setColor(COLOR);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
+
+        for (DetectedObject obj: detObjects) {
+            canvas.drawRect(obj.getBoundingBox(), paint);
+        }
+    }
+
+    public static void drawObjectWithData(Bitmap frame, List<Pair> pairs, List<Thing> info, int rotation) {
+        int i = 0;
+        Log.println(Log.VERBOSE, TAG, "There are " + Integer.toString(pairs.size()) + " objects");
+        Log.println(Log.VERBOSE, TAG, "We have info about  " + info.size() + " objects");
+        for (Pair pair: pairs) {
+            Canvas canvas = new Canvas(frame);
+            Paint paint = new Paint();
+            paint.setColor(COLOR);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(5);
+            int shiftX = 0;
+            int shiftY = 0;
+            drawBoundingBox(canvas, pair.getObj(), paint, rotation);
+            shiftX = pair.getObj().getBoundingBox().left;
+            shiftY = pair.getObj().getBoundingBox().top;
+            drawBarcode(canvas, pair.getBarInfo(), info.get(i), shiftX, shiftY);
+
+            i++;
+        }
     }
 }
