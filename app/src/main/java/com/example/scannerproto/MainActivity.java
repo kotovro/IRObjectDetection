@@ -79,12 +79,12 @@ public class MainActivity extends AppCompatActivity {
                                 Barcode.FORMAT_AZTEC)
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
-        ObjectDetectorOptions options =
-                new ObjectDetectorOptions.Builder()
-                        .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
-//                        .enableClassification()  // Optional
-                        .build();
-        objectDetector = ObjectDetection.getClient(options);
+//        ObjectDetectorOptions options =
+//                new ObjectDetectorOptions.Builder()
+//                        .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+////                        .enableClassification()  // Optional
+//                        .build();
+//        objectDetector = ObjectDetection.getClient(options);
         preview = findViewById(R.id.preview);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
@@ -140,54 +140,55 @@ public class MainActivity extends AppCompatActivity {
                                 InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
 
                                 if ((frameCount % UPDATE_RATE == 0)) {
-                                    objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
-                                        detObj = null;
-                                        InputImage tempInput = inputImage;
-                                        if (!detectedObjects.isEmpty()) {
-                                            detObj = detectedObjects.get(0);
-                                            if (detObj != null) {
-                                                Rect temp = detObj.getBoundingBox();
-                                                tempInput = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
-                                                                temp.left,
-                                                                temp.top,
-                                                                temp.width(),
-                                                                temp.height()),
-                                                        image.getImageInfo().getRotationDegrees());
-                                                Log.println(Log.VERBOSE, TAG, inputImage.getWidth() + " " + inputImage.getHeight());
-                                                Log.println(Log.VERBOSE, TAG, temp.left + " " + " " + temp.top + " " + temp.width() + " " + temp.height());
-                                            } else {
-                                                Log.println(Log.VERBOSE, TAG, "No obj detected");
-                                            }
-                                            barcodeScanner.process(tempInput).addOnSuccessListener(barcodes -> {
+//                                    objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
+////                                        detObj = null;
+//                                        InputImage tempInput = inputImage;
+//                                        if (!detectedObjects.isEmpty()) {
+//                                            detObj = detectedObjects.get(0);
+////                                            if (detObj != null) {
+//                                                Rect temp = detObj.getBoundingBox();
+//                                                tempInput = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
+//                                                                temp.left,
+//                                                                temp.top,
+//                                                                temp.width(),
+//                                                                temp.height()),
+//                                                        image.getImageInfo().getRotationDegrees());
+//                                                Log.println(Log.VERBOSE, TAG, inputImage.getWidth() + " " + inputImage.getHeight());
+//                                                Log.println(Log.VERBOSE, TAG, temp.left + " " + " " + temp.top + " " + temp.width() + " " + temp.height());
+////                                            } else {
+////                                                Log.println(Log.VERBOSE, TAG, "No obj detected");
+////                                            }
+                                            barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
                                                 barcodeList.clear();
+                                                Log.println(Log.ERROR, TAG, "There are "+ barcodes.size() + "barcodes");
                                                 if (!barcodes.isEmpty()) {
                                                     for (Barcode barcode : barcodes) {
                                                         ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
                                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
                                                         detectionResult.setBarcode(barcode);
-                                                        barcodeList.add(detectionResult);                                                }
+                                                        barcodeList.add(detectionResult);
+                                                    }
                                                 }
                                             }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
-                                        }
-                                    }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
-
-
+//                                        }
+//                                    }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                                 }
 
                                 preview.setRotation(image.getImageInfo().getRotationDegrees());
-                                if (!barcodeList.isEmpty() || detObj != null) {
+                                if (!barcodeList.isEmpty()){ //|| detObj != null) {
 //                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
 //                                        if (detObj != null) {
                                     List<Thing> curInfo = new LinkedList<>();
                                     for (ObjectDetectionResult bCode: barcodeList) {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-                                        Log.println(Log.WARN, TAG, bCode.getBarcodeMessage());
+                                        Log.println(Log.WARN, TAG, bCode.getBarcodeMessage() + " 111111");
                                         curInfo.add(info);
                                     }
-                                    DetectionBound.drawDetection(bitmap, detObj,
+                                    DetectionBound.drawDetection(bitmap,
                                             barcodeList,
                                             curInfo,
                                             (int) preview.getRotation());
+                                    Log.println(Log.VERBOSE, TAG, "WTF");
 //                                        }
 //                                     }
                                 }

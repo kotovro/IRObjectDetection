@@ -23,7 +23,7 @@ public class DetectionBound {
     static int COLOR = Color.BLUE;
     static  int COLOR2 = Color.RED;
 
-    public static Bitmap drawDetection(Bitmap frame, DetectedObject obj,  List<ObjectDetectionResult> barcodes, List<Thing> objectsInfo, int rotationAngle) {
+    public static Bitmap drawDetection(Bitmap frame,  List<ObjectDetectionResult> barcodes, List<Thing> curInfo, int rotationAngle) {
         Canvas canvas = new Canvas(frame);
         Paint paint = new Paint();
         paint.setColor(COLOR);
@@ -31,17 +31,17 @@ public class DetectionBound {
         paint.setStrokeWidth(5);
         int shiftX = 0;
         int shiftY = 0;
-        if (obj != null) {
-            canvas.rotate(rotationAngle);
-            paint.setColor(COLOR2);
-            canvas.drawRect(obj.getBoundingBox(), paint);
-            shiftX = obj.getBoundingBox().left;
-            shiftY = obj.getBoundingBox().top;
-        }
+//        if (obj != null) {
+//            canvas.rotate(rotationAngle);
+//            paint.setColor(COLOR2);
+//            canvas.drawRect(obj.getBoundingBox(), paint);
+//            shiftX = obj.getBoundingBox().left;
+//            shiftY = obj.getBoundingBox().top;
+//        }
         int i = 0;
         for (ObjectDetectionResult code: barcodes) {
-            Log.println(Log.VERBOSE, TAG, Boolean.toString(objectsInfo.get(0) == null));
-            drawBarcode(canvas, code.getBarcode(), objectsInfo.get(i), shiftX, shiftY);
+//            Log.println(Log.VERBOSE, TAG, Boolean.toString(objectsInfo.get(0) == null));
+            drawBarcode(canvas, code.getBarcode(), curInfo.get(i), shiftX, shiftY);
             i++;
         }
         return frame;
