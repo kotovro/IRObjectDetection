@@ -7,7 +7,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,9 +37,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.objects.DetectedObject;
-import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
-import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -137,7 +134,9 @@ public class MainActivity extends AppCompatActivity {
                                 @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
                                 Image img = image.getImage();
                                 bitmap = translator.translateYUV(img, MainActivity.this);
-                                InputImage inputImage = InputImage.fromBitmap(bitmap, image.getImageInfo().getRotationDegrees());
+                                Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
+                                InputImage inputImage = InputImage.fromBitmap(newBitmap, image.getImageInfo().getRotationDegrees());
+
 
                                 if ((frameCount % UPDATE_RATE == 0)) {
 //                                    objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
@@ -183,14 +182,14 @@ public class MainActivity extends AppCompatActivity {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
                                         curInfo.add(info);
                                     }
-                                    DetectionBound.drawDetection(bitmap,
+                                    DetectionBound.drawDetection(newBitmap,
                                             barcodeList,
                                             curInfo,
                                             (int) preview.getRotation());
 //                                        }
 //                                     }
                                 }
-                                Bitmap newBitmap = DetectionBound.separateBitmap(bitmap);
+                                newBitmap = DetectionBound.mergeBitmap(newBitmap, newBitmap);
                                 preview.setImageBitmap(newBitmap);
 
                                 image.close();

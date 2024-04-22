@@ -1,23 +1,15 @@
 package com.example.scannerproto.anlaysis.helpers;
 
-import static android.content.ContentValues.TAG;
-
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.util.Log;
 
-import com.example.scannerproto.MainActivity;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
 import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.objects.DetectedObject;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 //import com.google.mlkit.vision.face.Face;
 
 public class DetectionBound {
@@ -66,20 +58,31 @@ public class DetectionBound {
                 barcode.getCornerPoints()[0].x + shiftX,  barcode.getCornerPoints()[0].y + shiftY + 70, paint);
     }
 
-    public static Bitmap separateBitmap(Bitmap bitmap) {
-        Bitmap res = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+    public static Bitmap extractBitmap(Bitmap bitmap) {
         int newWidthStart = bitmap.getWidth() / 4;
         int newWidthEnd = 3 * bitmap.getWidth() / 4;
 
-        int curPixel = 0;
-        for (int i = newWidthStart; i < newWidthEnd; i++) {
-            for (int j = 0; j < bitmap.getHeight(); j++) {
-                res.setPixel(curPixel, j, bitmap.getPixel(i, j));
-                res.setPixel(curPixel + bitmap.getWidth() / 2, j, bitmap.getPixel(i, j));
-            }
-            curPixel++;
-        }
-
+        Bitmap res = Bitmap.createBitmap(bitmap, newWidthStart, 0, newWidthEnd - newWidthStart, bitmap.getHeight());
         return res;
+    }
+    public static Bitmap mergeBitmap(Bitmap fr, Bitmap sc)
+    {
+
+        Bitmap comboBitmap;
+
+        int width, height;
+
+        width = fr.getWidth() + sc.getWidth();
+        height = fr.getHeight();
+
+        comboBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        Canvas comboImage = new Canvas(comboBitmap);
+
+
+        comboImage.drawBitmap(fr, 0f, 0f, null);
+        comboImage.drawBitmap(sc, fr.getWidth(), 0f , null);
+        return comboBitmap;
+
     }
 }
