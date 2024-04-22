@@ -3,6 +3,7 @@ package com.example.scannerproto.anlaysis.helpers;
 import static android.content.ContentValues.TAG;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -63,5 +64,22 @@ public class DetectionBound {
                 barcode.getCornerPoints()[0].x + shiftX + 20,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
         canvas.drawText((Objects.equals(objectInfo, "") ? "Нет информации": objectInfo.getInfo()),
                 barcode.getCornerPoints()[0].x + shiftX,  barcode.getCornerPoints()[0].y + shiftY + 70, paint);
+    }
+
+    public static Bitmap separateBitmap(Bitmap bitmap) {
+        Bitmap res = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+        int newWidthStart = bitmap.getWidth() / 4;
+        int newWidthEnd = 3 * bitmap.getWidth() / 4;
+
+        int curPixel = 0;
+        for (int i = newWidthStart; i < newWidthEnd; i++) {
+            for (int j = 0; j < bitmap.getHeight(); j++) {
+                res.setPixel(curPixel, j, bitmap.getPixel(i, j));
+                res.setPixel(curPixel + bitmap.getWidth() / 2, j, bitmap.getPixel(i, j));
+            }
+            curPixel++;
+        }
+
+        return res;
     }
 }

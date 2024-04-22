@@ -181,18 +181,17 @@ public class MainActivity extends AppCompatActivity {
                                     List<Thing> curInfo = new LinkedList<>();
                                     for (ObjectDetectionResult bCode: barcodeList) {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-                                        Log.println(Log.WARN, TAG, bCode.getBarcodeMessage() + " 111111");
                                         curInfo.add(info);
                                     }
                                     DetectionBound.drawDetection(bitmap,
                                             barcodeList,
                                             curInfo,
                                             (int) preview.getRotation());
-                                    Log.println(Log.VERBOSE, TAG, "WTF");
 //                                        }
 //                                     }
                                 }
-                                preview.setImageBitmap(bitmap);
+                                Bitmap newBitmap = DetectionBound.separateBitmap(bitmap);
+                                preview.setImageBitmap(newBitmap);
 
                                 image.close();
                                 frameCount++;
