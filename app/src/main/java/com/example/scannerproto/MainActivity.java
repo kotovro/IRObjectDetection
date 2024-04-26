@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
 //                                        }
 //                                     }
                                 }
-                                newBitmap = DetectionBound.mergeBitmap(newBitmap, newBitmap);
+                                newBitmap = DetectionBound.prepareBitmap(newBitmap);
                                 preview.setImageBitmap(newBitmap);
 
                                 image.close();
