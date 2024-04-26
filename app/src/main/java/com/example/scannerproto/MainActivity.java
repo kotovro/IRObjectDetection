@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private DetectedObject detObj;
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
+//    public static LinkedList<String> newObjects = new LinkedList<>();
     private final static IObjectInfoGetter infoGetter = new SimpleObjectInfoGetter();
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
@@ -180,6 +181,10 @@ public class MainActivity extends AppCompatActivity {
                                     List<Thing> curInfo = new LinkedList<>();
                                     for (ObjectDetectionResult bCode: barcodeList) {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
+//                                        String temp = bCode.getBarcodeMessage();
+//                                        if (info == null && !newObjects.contains(bCode.getBarcodeMessage())){
+//                                            newObjects.add(temp);
+//                                        }
                                         curInfo.add(info);
                                     }
                                     DetectionBound.drawDetection(newBitmap,
