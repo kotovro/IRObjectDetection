@@ -55,8 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private DetectedObject detObj;
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
-//    public static LinkedList<String> newObjects = new LinkedList<>();
-    private final static IObjectInfoGetter infoGetter = new SimpleObjectInfoGetter();
+    public static String newObject = new String();
+    public final static IObjectInfoGetter infoGetter = new SimpleObjectInfoGetter();
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
     private  final int UPDATE_RATE = 5;
@@ -181,18 +181,22 @@ public class MainActivity extends AppCompatActivity {
                                     List<Thing> curInfo = new LinkedList<>();
                                     for (ObjectDetectionResult bCode: barcodeList) {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-//                                        String temp = bCode.getBarcodeMessage();
-//                                        if (info == null && !newObjects.contains(bCode.getBarcodeMessage())){
-//                                            newObjects.add(temp);
-//                                        }
-                                        curInfo.add(info);
+                                        String temp = bCode.getBarcodeMessage();
+                                        if (info == null){
+                                            newObject = bCode.getBarcodeMessage();
+                                            Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
+                                            addNewIntent.putExtra("ObjectName", bCode.getBarcodeMessage());
+                                            MainActivity.this.startActivity(addNewIntent);
+                                        } else {
+                                            curInfo.add(info);
+                                        }
                                     }
-                                    DetectionBound.drawDetection(newBitmap,
-                                            barcodeList,
-                                            curInfo,
-                                            (int) preview.getRotation());
-//                                        }
-//                                     }
+                                    if (!curInfo.isEmpty()) {
+                                        DetectionBound.drawDetection(newBitmap,
+                                                barcodeList,
+                                                curInfo,
+                                                (int) preview.getRotation());
+                                    }
                                 }
                                 newBitmap = DetectionBound.prepareBitmap(newBitmap);
                                 preview.setImageBitmap(newBitmap);
