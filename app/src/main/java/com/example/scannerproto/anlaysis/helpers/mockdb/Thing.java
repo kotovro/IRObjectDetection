@@ -1,19 +1,25 @@
 package com.example.scannerproto.anlaysis.helpers.mockdb;
 
 public class Thing {
-    private String id;
+    private String name;
     private String info;
 
 
-    public Thing(String id, String info) {
-        this.id = id;
+    public Thing(String name, String info) {
+        this.name = name;
         this.info = info;
     }
-    public String  getId() {
-        return id;
+
+    public Thing() {
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getInfo() {
         return info;
     }
+
+
 }

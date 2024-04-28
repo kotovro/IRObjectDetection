@@ -34,6 +34,9 @@ android {
 
 
 dependencies {
+    implementation(libs.jackson.base)
+    implementation(libs.jackson.core)
+    implementation(libs.jackson.databind)
     val room_version = "2.6.1"
 
     implementation("androidx.room:room-runtime:$room_version")
@@ -84,4 +87,6 @@ dependencies {
     implementation ("androidx.camera:camera-view:1.0.0-alpha14")
     // If you want to additionally use the CameraX Extensions library
     implementation ("androidx.camera:camera-extensions:1.0.0-alpha14")
+
+
 }

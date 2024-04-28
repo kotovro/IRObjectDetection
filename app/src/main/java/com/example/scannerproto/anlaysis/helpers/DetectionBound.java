@@ -54,7 +54,7 @@ public class DetectionBound {
         paint.setTextSize(50);
         paint.setColor(COLOR);
 
-        canvas.drawText((Objects.equals(objectInfo, "") ? "Неизвестный объект": objectInfo.getId()),
+        canvas.drawText((Objects.equals(objectInfo, "") ? "Неизвестный объект": objectInfo.getName()),
                 barcode.getCornerPoints()[0].x + shiftX + 20,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
         canvas.drawText((Objects.equals(objectInfo, "") ? "Нет информации": objectInfo.getInfo()),
                 barcode.getCornerPoints()[0].x + shiftX,  barcode.getCornerPoints()[0].y + shiftY + 70, paint);

@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
+import com.example.scannerproto.anlaysis.helpers.filedb.FileObjectGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.SimpleObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -41,8 +42,10 @@ import com.google.mlkit.vision.objects.ObjectDetector;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -53,10 +56,12 @@ public class MainActivity extends AppCompatActivity {
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private ObjectDetector objectDetector;
     private DetectedObject detObj;
+
+    public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
     public static String newObject = new String();
-    public final static IObjectInfoGetter infoGetter = new SimpleObjectInfoGetter();
+    public final static IObjectInfoGetter infoGetter = new FileObjectGetter();
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
     private  final int UPDATE_RATE = 5;
@@ -139,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                                 InputImage inputImage = InputImage.fromBitmap(newBitmap, image.getImageInfo().getRotationDegrees());
 
 
-                                if ((frameCount % UPDATE_RATE == 0)) {
+                                if ((frameCount % UPDATE_RATE == 0) && !isNewObjectFound.get()) {
 //                                    objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
 ////                                        detObj = null;
 //                                        InputImage tempInput = inputImage;
@@ -160,13 +165,13 @@ public class MainActivity extends AppCompatActivity {
 ////                                            }
                                             barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
                                                 barcodeList.clear();
-                                                Log.println(Log.ERROR, TAG, "There are "+ barcodes.size() + "barcodes");
                                                 if (!barcodes.isEmpty()) {
                                                     for (Barcode barcode : barcodes) {
                                                         ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
                                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
                                                         detectionResult.setBarcode(barcode);
                                                         barcodeList.add(detectionResult);
+                                                        Log.println(Log.VERBOSE, TAG, Objects.requireNonNull(barcode.getRawValue()));
                                                     }
                                                 }
                                             }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
@@ -183,10 +188,12 @@ public class MainActivity extends AppCompatActivity {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
                                         String temp = bCode.getBarcodeMessage();
                                         if (info == null){
+                                            Log.println(Log.VERBOSE, TAG, "SAS");
                                             newObject = bCode.getBarcodeMessage();
                                             Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
                                             addNewIntent.putExtra("ObjectName", bCode.getBarcodeMessage());
                                             MainActivity.this.startActivity(addNewIntent);
+                                            break;
                                         } else {
                                             curInfo.add(info);
                                         }
@@ -209,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
 
                 } catch (ExecutionException | InterruptedException e) {
                     throw new RuntimeException(e);
+
 
                 } catch (Exception e) {
                     Log.e(TAG, "Bind Error", e);
