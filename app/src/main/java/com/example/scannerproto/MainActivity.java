@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private ObjectDetector objectDetector;
     private DetectedObject detObj;
 
+    private IAddCondition adder;
+
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
