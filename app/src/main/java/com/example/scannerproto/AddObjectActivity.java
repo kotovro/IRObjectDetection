@@ -17,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoAdder;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
+import com.example.scannerproto.anlaysis.helpers.db.SQLiteManager;
+import com.example.scannerproto.anlaysis.helpers.db.ThingWithId;
 import com.example.scannerproto.anlaysis.helpers.filedb.FileObjectGetter;
 import com.example.scannerproto.anlaysis.helpers.filedb.FileUtils;
 import com.example.scannerproto.anlaysis.helpers.filedb.Filethings;
@@ -29,7 +31,7 @@ import java.io.IOException;
 
 public class AddObjectActivity extends AppCompatActivity {
 
-    private IObjectInfoGetter infoGetter = new SimpleObjectInfoGetter();
+    private IObjectInfoGetter infoGetter = new ThingWithId();
     private IObjectInfoAdder<Thing> adder = new SimpleObjectAdder();
     private EditText nameEditText;
     private EditText infoEditText;
@@ -58,16 +60,16 @@ public class AddObjectActivity extends AppCompatActivity {
         }
     }
 
-    public void onAdd(View view) throws IOException {
+    public void onAdd(View view) {
+        SQLiteManager sqLiteManager = SQLiteManager.instanceOfDatabase(this);
         String name = nameEditText.getText().toString();
         String info = infoEditText.getText().toString();
         if (validator.validate(info)) {
             if (receivedString != null) {
-                FileObjectGetter.things.addLast(new Filethings(receivedString, name, info));
-                MainActivity.isNewObjectFound.set(false);
-                FileUtils.writeListToFile(Environment.getExternalStorageDirectory() + "/" + File.separator + "base.txt", FileObjectGetter.things);
+                sqLiteManager.addNoteToDatabase(new ThingWithId(ThingWithId.thingsArrayList.size() - 1, receivedString, name, info));
+                ThingWithId.thingsArrayList.add(new ThingWithId(ThingWithId.thingsArrayList.size() - 1, receivedString, name, info));
                 finish();
-                clearEditTexts();
+                MainActivity.isNewObjectFound.set(false);
             }
             else {
                 finish();

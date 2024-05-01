@@ -1,5 +1,6 @@
 package com.example.scannerproto.anlaysis.helpers.filedb;
 
+import android.content.Context;
 import android.os.Environment;
 
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
@@ -17,39 +18,42 @@ public class FileUtils {
 
 
     public static boolean checkFile(){
-        File file = new File(Environment.getExternalStorageDirectory() + "/" + File.separator + "base.txt");
+        File file = new File("base.txt");
         return file.exists();
     }
     public static LinkedList<Filethings> readListFromFile(String file) throws IOException {
         Scanner sc;
-        if (checkFile()) {
+        File temp = new File(String.valueOf(Context.MODE_PRIVATE), file);
+        if (!(temp.exists())) {
+            temp.createNewFile();
+        }
+        try {
+            sc = new Scanner(new FileReader(file));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        LinkedList<Filethings> res = new LinkedList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        while (sc.hasNextLine()) {
+            Filethings st = null;
             try {
-                sc = new Scanner(new FileReader(file));
-            } catch (FileNotFoundException e) {
+                st = mapper.readValue(sc.nextLine(), Filethings.class);
+            } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            LinkedList<Filethings> res = new LinkedList<>();
-            ObjectMapper mapper = new ObjectMapper();
-            while (sc.hasNextLine()) {
-                Filethings st = null;
-                try {
-                    st = mapper.readValue(sc.nextLine(), Filethings.class);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                res.add(st);
-            }
-            return res;
+            res.add(st);
         }
-        return new LinkedList<>();
+        return res;
     }
     public static void writeListToFile(String fName, LinkedList<Filethings> list) throws IOException {
-        FileWriter fw = new FileWriter(fName);
-        ObjectMapper mapper = new ObjectMapper();
-        for (Filethings st: list) {
-            String str = String.format("%s%n", mapper.writeValueAsString(st));
-            fw.write(str);
+        if (checkFile()) {
+            FileWriter fw = new FileWriter(fName);
+            ObjectMapper mapper = new ObjectMapper();
+            for (Filethings st : list) {
+                String str = String.format("%s%n", mapper.writeValueAsString(st));
+                fw.write(str);
+            }
+            fw.close();
         }
-        fw.close();
     }
 }

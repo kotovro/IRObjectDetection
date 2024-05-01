@@ -1,9 +1,12 @@
 package com.example.scannerproto;
 
+import static android.Manifest.permission.MANAGE_EXTERNAL_STORAGE;
+import static android.app.appsearch.SetSchemaRequest.READ_EXTERNAL_STORAGE;
 import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.TabActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -28,6 +31,8 @@ import androidx.core.content.ContextCompat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
+import com.example.scannerproto.anlaysis.helpers.db.SQLiteManager;
+import com.example.scannerproto.anlaysis.helpers.db.ThingWithId;
 import com.example.scannerproto.anlaysis.helpers.filedb.FileObjectGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.SimpleObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
@@ -61,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
     public static String newObject = new String();
-    public final static IObjectInfoGetter infoGetter = new FileObjectGetter();
+    public final static IObjectInfoGetter infoGetter = new ThingWithId();
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
     private  final int UPDATE_RATE = 5;
@@ -73,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        loadFromDBToMemory();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         BarcodeScannerOptions bOptions =
@@ -114,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         if (requestCode == PERMISSION_REQUEST_CAMERA && grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             initializeCamera();
@@ -122,6 +127,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "PermissionError", Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+
+    public void loadFromDBToMemory() {
+        SQLiteManager sqLiteManager = SQLiteManager.instanceOfDatabase(MainActivity.this);
+        sqLiteManager.populateNoteListArray();
     }
 
     @Override
@@ -171,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
                                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
                                                         detectionResult.setBarcode(barcode);
                                                         barcodeList.add(detectionResult);
-                                                        Log.println(Log.VERBOSE, TAG, Objects.requireNonNull(barcode.getRawValue()));
                                                     }
                                                 }
                                             }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
@@ -187,13 +196,17 @@ public class MainActivity extends AppCompatActivity {
                                     for (ObjectDetectionResult bCode: barcodeList) {
                                         Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
                                         String temp = bCode.getBarcodeMessage();
-                                        if (info == null){
-                                            Log.println(Log.VERBOSE, TAG, "SAS");
-                                            newObject = bCode.getBarcodeMessage();
-                                            Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
-                                            addNewIntent.putExtra("ObjectName", bCode.getBarcodeMessage());
-                                            MainActivity.this.startActivity(addNewIntent);
-                                            break;
+                                        if (info == null) {
+                                            if (!isNewObjectFound.get()) {
+                                                isNewObjectFound.set(true);
+                                                Log.println(Log.VERBOSE, TAG, newObject);
+                                                newObject = bCode.getBarcodeMessage();
+                                                Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
+                                                addNewIntent.putExtra("ObjectName", newObject);
+                                                startActivity(addNewIntent);
+                                                addNewIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                break;
+                                            }
                                         } else {
                                             curInfo.add(info);
                                         }

@@ -16,17 +16,17 @@ public class FileObjectGetter implements IObjectInfoGetter {
 
     static {
         try {
-            things = FileUtils.readListFromFile(Environment.getExternalStorageDirectory() + "/" + File.separator + "base.txt");
+            things = FileUtils.readListFromFile("base.txt");
         } catch (IOException e) {
             things = new LinkedList<>();
-            throw new RuntimeException(e);
+//            throw new RuntimeException(e);
         }
     }
 
     public FileObjectGetter() {}
 
     public static void writeToFile() throws IOException {
-        FileUtils.writeListToFile(Environment.getExternalStorageDirectory() + "/" + File.separator + "base.txt", things);
+        FileUtils.writeListToFile("base.txt", things);
     }
     @Override
     public  Thing getObjectInfo(String id) {
