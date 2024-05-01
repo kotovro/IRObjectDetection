@@ -1,12 +1,9 @@
 package com.example.scannerproto;
 
-import static android.Manifest.permission.MANAGE_EXTERNAL_STORAGE;
-import static android.app.appsearch.SetSchemaRequest.READ_EXTERNAL_STORAGE;
 import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.TabActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -69,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     public final static IObjectInfoGetter infoGetter = new ThingWithId();
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
-    private  final int UPDATE_RATE = 5;
+    private final int UPDATE_RATE = 1;
     private int frameCount = 0;
     private List<ObjectDetectionResult> barcodeList = new CopyOnWriteArrayList<>();
 
@@ -104,17 +101,18 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
                     PERMISSION_REQUEST_CAMERA);
         } else {
             initializeCamera();
         }
     }
 
-    public void onAdd(View view){
+    public void onAdd(View view) {
         Intent intent = new Intent(this, AddObjectActivity.class);
         startActivity(intent);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -142,101 +140,76 @@ public class MainActivity extends AppCompatActivity {
     private void initializeCamera() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(() -> {
-                ProcessCameraProvider cameraProvider = null;
-                try {
-                    cameraProvider = cameraProviderFuture.get();
-                    imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(MainActivity.this),
-                            image -> {
-                                @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
-                                Image img = image.getImage();
-                                bitmap = translator.translateYUV(img, MainActivity.this);
-                                Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
-                                InputImage inputImage = InputImage.fromBitmap(newBitmap, image.getImageInfo().getRotationDegrees());
+            try {
+                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(MainActivity.this),
+                        image -> {
+                            @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
+                            Image img = image.getImage();
+                            bitmap = translator.translateYUV(img, MainActivity.this);
+                            Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
+                            InputImage inputImage = InputImage.fromBitmap(newBitmap, image.getImageInfo().getRotationDegrees());
 
 
-                                if ((frameCount % UPDATE_RATE == 0) && !isNewObjectFound.get()) {
-//                                    objectDetector.process(inputImage).addOnSuccessListener(detectedObjects -> {
-////                                        detObj = null;
-//                                        InputImage tempInput = inputImage;
-//                                        if (!detectedObjects.isEmpty()) {
-//                                            detObj = detectedObjects.get(0);
-////                                            if (detObj != null) {
-//                                                Rect temp = detObj.getBoundingBox();
-//                                                tempInput = InputImage.fromBitmap(Bitmap.createBitmap(bitmap,
-//                                                                temp.left,
-//                                                                temp.top,
-//                                                                temp.width(),
-//                                                                temp.height()),
-//                                                        image.getImageInfo().getRotationDegrees());
-//                                                Log.println(Log.VERBOSE, TAG, inputImage.getWidth() + " " + inputImage.getHeight());
-//                                                Log.println(Log.VERBOSE, TAG, temp.left + " " + " " + temp.top + " " + temp.width() + " " + temp.height());
-////                                            } else {
-////                                                Log.println(Log.VERBOSE, TAG, "No obj detected");
-////                                            }
-                                            barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
-                                                barcodeList.clear();
-                                                if (!barcodes.isEmpty()) {
-                                                    for (Barcode barcode : barcodes) {
-                                                        ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
-                                                        detectionResult.setBarcodeMessage(barcode.getRawValue());
-                                                        detectionResult.setBarcode(barcode);
-                                                        barcodeList.add(detectionResult);
-                                                    }
-                                                }
-                                            }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
-//                                        }
-//                                    }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
-                                }
-
-                                preview.setRotation(image.getImageInfo().getRotationDegrees());
-                                if (!barcodeList.isEmpty()){ //|| detObj != null) {
-//                                    for (ObjectDetectionResult detectionResult : barcodeList.keySet()) {
-//                                        if (detObj != null) {
-                                    List<Thing> curInfo = new LinkedList<>();
-                                    for (ObjectDetectionResult bCode: barcodeList) {
-                                        Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-                                        String temp = bCode.getBarcodeMessage();
-                                        if (info == null) {
-                                            if (!isNewObjectFound.get()) {
-                                                isNewObjectFound.set(true);
-                                                Log.println(Log.VERBOSE, TAG, newObject);
-                                                newObject = bCode.getBarcodeMessage();
-                                                Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
-                                                addNewIntent.putExtra("ObjectName", newObject);
-                                                startActivity(addNewIntent);
-                                                addNewIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                break;
-                                            }
-                                        } else {
-                                            curInfo.add(info);
+                            if ((frameCount % UPDATE_RATE == 0) && !isNewObjectFound.get()) {
+                                barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
+                                    barcodeList.clear();
+                                    if (!barcodes.isEmpty()) {
+                                        for (Barcode barcode : barcodes) {
+                                            ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
+                                            detectionResult.setBarcodeMessage(barcode.getRawValue());
+                                            detectionResult.setBarcode(barcode);
+                                            barcodeList.add(detectionResult);
                                         }
                                     }
-                                    if (!curInfo.isEmpty()) {
-                                        DetectionBound.drawDetection(newBitmap,
-                                                barcodeList,
-                                                curInfo,
-                                                (int) preview.getRotation());
+                                }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
+                            }
+
+                            preview.setRotation(image.getImageInfo().getRotationDegrees());
+                            if (!barcodeList.isEmpty()) {
+                                List<Thing> curInfo = new LinkedList<>();
+                                for (ObjectDetectionResult bCode : barcodeList) {
+                                    Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
+                                    if (info == null) {
+                                        if (!isNewObjectFound.get()) {
+                                            isNewObjectFound.set(true);
+                                            Log.println(Log.VERBOSE, TAG, newObject);
+                                            newObject = bCode.getBarcodeMessage();
+                                            Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
+                                            addNewIntent.putExtra("ObjectName", newObject);
+                                            startActivity(addNewIntent);
+                                            addNewIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                            break;
+                                        }
+                                    } else {
+                                        curInfo.add(info);
                                     }
                                 }
-                                newBitmap = DetectionBound.prepareBitmap(newBitmap);
-                                preview.setImageBitmap(newBitmap);
+                                if (!curInfo.isEmpty()) {
+                                    DetectionBound.drawDetection(newBitmap,
+                                            barcodeList,
+                                            curInfo,
+                                            (int) preview.getRotation());
+                                }
+                            }
+//                            newBitmap = DetectionBound.prepareBitmap(newBitmap);
+                            preview.setImageBitmap(newBitmap);
 
-                                image.close();
-                                frameCount++;
-                            });
+                            image.close();
+                            frameCount++;
+                        });
 
-                    cameraProvider.bindToLifecycle(MainActivity.this, cameraSelector, imageAnalysis);
+                cameraProviderFuture.get().bindToLifecycle(MainActivity.this, cameraSelector, imageAnalysis);
 
-                } catch (ExecutionException | InterruptedException e) {
-                    throw new RuntimeException(e);
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
 
 
-                } catch (Exception e) {
-                    Log.e(TAG, "Bind Error", e);
-                    Toast.makeText(MainActivity.this, "PermissionError", Toast.LENGTH_SHORT).show();
-                }
+            } catch (Exception e) {
+                Log.e(TAG, "Bind Error", e);
+                Toast.makeText(MainActivity.this, "PermissionError", Toast.LENGTH_SHORT).show();
+            }
 
-            }, ContextCompat.getMainExecutor(this));
+        }, ContextCompat.getMainExecutor(this));
     }
 
 }
