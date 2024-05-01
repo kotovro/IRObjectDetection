@@ -10,11 +10,13 @@ import android.app.TabActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -45,6 +47,7 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetector;
 
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -83,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         loadFromDBToMemory();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         BarcodeScannerOptions bOptions =
                 new BarcodeScannerOptions.Builder()
                         .setBarcodeFormats(
@@ -113,10 +117,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onAdd(View view){
-        Intent intent = new Intent(this, AddObjectActivity.class);
-        startActivity(intent);
-    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -151,6 +152,11 @@ public class MainActivity extends AppCompatActivity {
                             image -> {
                                 @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
                                 Image img = image.getImage();
+//                                bitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+//                                ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+//                                byte[] bytes = new byte[buffer.capacity()];
+//                                buffer.get(bytes);
+//                                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
                                 bitmap = translator.translateYUV(img, MainActivity.this);
                                 Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
                                 InputImage inputImage = InputImage.fromBitmap(newBitmap, image.getImageInfo().getRotationDegrees());
