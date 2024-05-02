@@ -7,6 +7,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,6 +45,8 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetector;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -71,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private final int UPDATE_RATE = 1;
     private int frameCount = 0;
     private List<ObjectDetectionResult> barcodeList = new CopyOnWriteArrayList<>();
+    private final int[] rgba = new int[1920 * 1080];  //todo
 
 
     @SuppressLint("MissingInflatedId")
@@ -143,13 +149,23 @@ public class MainActivity extends AppCompatActivity {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(() -> {
             try {
+
                 imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(MainActivity.this),
                         image -> {
                             @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
                             Image img = image.getImage();
-                            bitmap = translator.translateYUV(img, MainActivity.this);
+                            byte[] bytes = YUVtoRGB.imageToByteBuffer(img).array();
+
+                            //updates rgba
+                            YUVtoRGB.decodeYUV420SP(rgba, bytes, img.getWidth(), img.getHeight());
+
+                            //todo create on app init
+                            bitmap = bitmap == null ?
+                                    Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888) : bitmap;
+                            bitmap.setPixels(rgba, 0, img.getWidth(), 0, 0, img.getWidth(), img.getHeight());
+
                             Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
-                            InputImage inputImage = InputImage.fromBitmap(newBitmap, image.getImageInfo().getRotationDegrees());
+                            InputImage inputImage = InputImage.fromBitmap(newBitmap, 0);
 
 
                             if ((frameCount % UPDATE_RATE == 0) && !isNewObjectFound.get()) {
@@ -202,11 +218,7 @@ public class MainActivity extends AppCompatActivity {
 
                 cameraProviderFuture.get().bindToLifecycle(MainActivity.this, cameraSelector, imageAnalysis);
 
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-
-
-            } catch (Exception e) {
+            }  catch (Exception e) {
                 Log.e(TAG, "Bind Error", e);
                 Toast.makeText(MainActivity.this, "PermissionError", Toast.LENGTH_SHORT).show();
             }
