@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                                         curInfo.add(info);
                                     }
                                 }
-                                if (!curInfo.isEmpty()) {
+                                if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
                                     DetectionBound.drawDetection(newBitmap,
                                             barcodeList,
                                             curInfo,

@@ -57,6 +57,7 @@ public class AddObjectActivity extends AppCompatActivity {
         receivedString = getIntent().getStringExtra("ObjectName");
         if (receivedString != null) {
             Log.println(Log.VERBOSE, TAG, receivedString);
+            nameEditText.setText(receivedString);
         }
     }
 
