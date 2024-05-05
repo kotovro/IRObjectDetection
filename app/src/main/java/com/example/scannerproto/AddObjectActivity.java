@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoAdder;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
+import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteManager;
 import com.example.scannerproto.anlaysis.helpers.db.ThingWithId;
 import com.example.scannerproto.anlaysis.helpers.filedb.FileObjectGetter;
@@ -31,7 +32,7 @@ import java.io.IOException;
 
 public class AddObjectActivity extends AppCompatActivity {
 
-    private IObjectInfoGetter infoGetter = new ThingWithId();
+    private IObjectInfoSetter infoSetter = new SQLiteInfoGetter(AddObjectActivity.this);
     private IObjectInfoAdder<Thing> adder = new SimpleObjectAdder();
     private EditText nameEditText;
     private EditText infoEditText;
@@ -62,13 +63,12 @@ public class AddObjectActivity extends AppCompatActivity {
     }
 
     public void onAdd(View view) {
-        SQLiteManager sqLiteManager = SQLiteManager.instanceOfDatabase(this);
         String name = nameEditText.getText().toString();
         String info = infoEditText.getText().toString();
         if (validator.validate(info)) {
             if (receivedString != null) {
-                sqLiteManager.addNoteToDatabase(new ThingWithId(ThingWithId.thingsArrayList.size() - 1, receivedString, name, info));
-                ThingWithId.thingsArrayList.add(new ThingWithId(ThingWithId.thingsArrayList.size() - 1, receivedString, name, info));
+                ThingWithId newThing = new ThingWithId(receivedString, name, info);
+                infoSetter.setObjectInfo(newThing);
                 finish();
                 MainActivity.isNewObjectFound.set(false);
             }

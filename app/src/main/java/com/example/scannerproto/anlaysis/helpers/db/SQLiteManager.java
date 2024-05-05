@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class SQLiteManager extends SQLiteOpenHelper {
@@ -19,10 +20,7 @@ public class SQLiteManager extends SQLiteOpenHelper {
     private static final String TABLE_NAME = "Things";
     private static final String COUNTER = "Counter";
 
-    private static final String ID_FIELD = "id";
-    private static final String NAME_FIELD = "name";
-    private static final String NAME_ID_FIELD = "name_id";
-    private static final String DESC_FIELD = "desc";
+
 
 
     public SQLiteManager(Context context)
@@ -47,15 +45,8 @@ public class SQLiteManager extends SQLiteOpenHelper {
                 .append(TABLE_NAME)
                 .append("(")
                 .append(COUNTER)
-                .append(" INTEGER PRIMARY KEY AUTOINCREMENT, ")
-                .append(ID_FIELD)
-                .append(" INT, ")
-                .append(NAME_ID_FIELD)
-                .append(" TEXT, ")
-                .append(NAME_FIELD)
-                .append(" TEXT, ")
-                .append(DESC_FIELD)
-                .append(" TEXT)");
+                .append(" INTEGER PRIMARY KEY AUTOINCREMENT, ");
+        sql = ThingWithId.getDBStructure(sql);
 
         sqLiteDatabase.execSQL(sql.toString());
     }
@@ -76,16 +67,22 @@ public class SQLiteManager extends SQLiteOpenHelper {
     {
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ID_FIELD, thingWithId.getNameId());
-        contentValues.put(NAME_ID_FIELD, thingWithId.getNameId());
-        contentValues.put(NAME_FIELD, thingWithId.getName());
-        contentValues.put(DESC_FIELD, thingWithId.getInfo());
+        ContentValues contentValues = thingWithId.toContentValues();
 
         sqLiteDatabase.insert(TABLE_NAME, null, contentValues);
+
+        try (Cursor result = sqLiteDatabase.rawQuery("SELECT last_insert_rowid()", null))
+        {
+            if(result.getCount() != 0)
+            {
+                int id = result.getInt(1);
+                thingWithId.setId(id);
+            }
+        }
+
     }
 
-    public void populateNoteListArray()
+    public void populateNoteListArray(ArrayList<ThingWithId> thingsArray)
     {
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
 
@@ -95,12 +92,8 @@ public class SQLiteManager extends SQLiteOpenHelper {
             {
                 while (result.moveToNext())
                 {
-                    int id = result.getInt(1);
-                    String idName = result.getString(2);
-                    String name = result.getString(3);
-                    String desc = result.getString(4);
-                    ThingWithId thing = new ThingWithId(id, idName, name,desc);
-                    ThingWithId.thingsArrayList.add(thing);
+                    ThingWithId thing = new ThingWithId(result);
+                    thingsArray.add(thing);
                 }
             }
         }
@@ -108,14 +101,6 @@ public class SQLiteManager extends SQLiteOpenHelper {
 
     public void updateNoteInDB(ThingWithId note)
     {
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ID_FIELD, note.getNameId());
-        contentValues.put(NAME_ID_FIELD, note.getNameId());
-//        contentValues.put(DESC_FIELD, note.getDescription());
-//        contentValues.put(DELETED_FIELD, getStringFromDate(note.getDeleted()));
-
-        sqLiteDatabase.update(TABLE_NAME, contentValues, ID_FIELD + " =? ", new String[]{String.valueOf(note.getNameId())});
     }
 
 }

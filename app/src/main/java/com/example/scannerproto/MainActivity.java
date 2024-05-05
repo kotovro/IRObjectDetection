@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
+import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteManager;
 import com.example.scannerproto.anlaysis.helpers.db.ThingWithId;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
@@ -39,6 +40,8 @@ import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetector;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -60,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
     public static String newObject = new String();
-    public final static IObjectInfoGetter infoGetter = new ThingWithId();
+    public final IObjectInfoGetter infoGetter = new SQLiteInfoGetter(MainActivity.this);
     YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
     private final int UPDATE_RATE = 1;
@@ -73,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        loadFromDBToMemory();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -121,10 +123,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void loadFromDBToMemory() {
-        SQLiteManager sqLiteManager = SQLiteManager.instanceOfDatabase(MainActivity.this);
-        sqLiteManager.populateNoteListArray();
-    }
 
     @Override
     public void onDestroy() {
@@ -173,20 +171,20 @@ public class MainActivity extends AppCompatActivity {
                                 List<Thing> curInfo = new LinkedList<>();
                                 for (ObjectDetectionResult bCode : barcodeList) {
                                     Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-                                    if (info == null) {
-                                        if (!isNewObjectFound.get()) {
-                                            isNewObjectFound.set(true);
-                                            Log.println(Log.VERBOSE, TAG, newObject);
-                                            newObject = bCode.getBarcodeMessage();
-                                            Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
-                                            addNewIntent.putExtra("ObjectName", newObject);
-                                            startActivity(addNewIntent);
-                                            addNewIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            break;
-                                        }
-                                    } else {
+//                                    if (info == null) {
+//                                        if (!isNewObjectFound.get()) {
+//                                            isNewObjectFound.set(true);
+//                                            Log.println(Log.VERBOSE, TAG, newObject);
+//                                            newObject = bCode.getBarcodeMessage();
+//                                            Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
+//                                            addNewIntent.putExtra("ObjectName", newObject);
+//                                            startActivity(addNewIntent);
+//                                            addNewIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                                            break;
+//                                        }
+//                                    } else {
                                         curInfo.add(info);
-                                    }
+//                                    }
                                 }
                                 if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
                                     DetectionBound.drawDetection(newBitmap,
