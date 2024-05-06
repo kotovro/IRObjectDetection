@@ -10,19 +10,8 @@ import java.util.Objects;
 
 public class ObjectDetectionResult implements Comparable<ObjectDetectionResult>{
     private final float EPSILON = 10;
-    private String barcodeMessage = " ";
-
-
+    private String barcodeMessage = "";
     private Barcode barcode;
-
-    public Barcode getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(Barcode barcode) {
-        this.barcode = barcode;
-    }
-
     public IObjectInfoGetter infoGetter;
 
     public ObjectDetectionResult(IObjectInfoGetter infoGetter) {
@@ -34,6 +23,19 @@ public class ObjectDetectionResult implements Comparable<ObjectDetectionResult>{
     }
     public String getBarcodeMessage() {
         return this.barcodeMessage;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectDetectionResult that = (ObjectDetectionResult) o;
+        return Objects.equals(barcodeMessage, that.barcodeMessage);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(barcodeMessage);
     }
 
     @Override
@@ -54,4 +56,11 @@ public class ObjectDetectionResult implements Comparable<ObjectDetectionResult>{
         return 1;
     }
 
+    public Barcode getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(Barcode barcode) {
+        this.barcode = barcode;
+    }
 }

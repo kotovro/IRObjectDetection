@@ -20,7 +20,7 @@ public class DetectionBound {
     static  int COLOR2 = Color.RED;
     static int extractionRate = 14;
 
-    public static Bitmap drawDetection(Bitmap frame,  List<ObjectDetectionResult> barcodes, List<Thing> curInfo, int rotationAngle) {
+    public static Bitmap drawDetection(Bitmap frame,  Iterable<ObjectDetectionResult> barcodes, List<Thing> curInfo, int rotationAngle) {
         Canvas canvas = new Canvas(frame);
         Paint paint = new Paint();
         paint.setColor(COLOR);

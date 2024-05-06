@@ -4,7 +4,6 @@ import static android.content.ContentValues.TAG;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.Image;
@@ -29,8 +28,6 @@ import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
-import com.example.scannerproto.anlaysis.helpers.db.SQLiteManager;
-import com.example.scannerproto.anlaysis.helpers.db.ThingWithId;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
@@ -38,13 +35,11 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.objects.DetectedObject;
-import com.google.mlkit.vision.objects.ObjectDetector;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -54,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private @SuppressLint("RestrictedApi") ImageAnalysis imageAnalysis;
     private static final int PERMISSION_REQUEST_CAMERA = 100;
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private static final Integer DECAY_TIME = 30;
 
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
@@ -62,10 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap bitmap = null;
     private final int UPDATE_RATE = 1;
     private int frameCount = 0;
-    private List<ObjectDetectionResult> barcodeList = new CopyOnWriteArrayList<>();
+    private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
     private final int[] rgba = new int[1920 * 1080];  //todo
-
-    private boolean isFindingForBarcode = true;
 
 
     @SuppressLint("MissingInflatedId")
@@ -144,28 +138,42 @@ public class MainActivity extends AppCompatActivity {
 
                             if ((frameCount % UPDATE_RATE == 0) && !isNewObjectFound.get()) {
                                 barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
-                                    barcodeList.clear();
-                                    if (!barcodes.isEmpty()) {
-                                        for (Barcode barcode : barcodes) {
-                                            ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
-                                            detectionResult.setBarcodeMessage(barcode.getRawValue());
-                                            detectionResult.setBarcode(barcode);
-                                            barcodeList.add(detectionResult);
+                                    for (ObjectDetectionResult bc: barcodeList.keySet()) {
+                                        Integer time = barcodeList.get(bc);
+                                        Log.println(Log.VERBOSE, TAG, String.valueOf(time));
+                                        barcodeList.put(bc, time - 1);
+                                        if (time < 0) {
+                                            barcodeList.remove(bc);
                                         }
                                     }
+
+                                    for (Barcode barcode : barcodes) {
+                                        ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
+                                        detectionResult.setBarcodeMessage(barcode.getRawValue());
+                                        detectionResult.setBarcode(barcode);
+                                        if (barcodeList.containsKey(detectionResult)) {
+                                            barcodeList.remove(detectionResult);
+                                            barcodeList.put(detectionResult, DECAY_TIME);
+                                        } else {
+                                            if (checkForHand() && barcodeList.isEmpty()) {
+                                                barcodeList.put(detectionResult, DECAY_TIME);
+                                            }
+                                        }
+                                    }
+
                                 }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                             }
 
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
-                                for (ObjectDetectionResult bCode : barcodeList) {
+                                for (ObjectDetectionResult bCode : barcodeList.keySet()) {
                                     Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
                                     curInfo.add(info);
                                 }
                                 if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
                                     DetectionBound.drawDetection(newBitmap,
-                                            barcodeList,
+                                            barcodeList.keySet(),
                                             curInfo,
                                             (int) preview.getRotation());
                                 }
@@ -179,12 +187,16 @@ public class MainActivity extends AppCompatActivity {
 
                 cameraProviderFuture.get().bindToLifecycle(MainActivity.this, cameraSelector, imageAnalysis);
 
-            }  catch (Exception e) {
+            } catch (Exception e) {
                 Log.e(TAG, "Bind Error", e);
                 Toast.makeText(MainActivity.this, "PermissionError", Toast.LENGTH_SHORT).show();
             }
 
         }, ContextCompat.getMainExecutor(this));
+    }
+
+    private boolean checkForHand() {
+        return true;
     }
 
 }
