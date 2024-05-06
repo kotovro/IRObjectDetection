@@ -1,19 +1,9 @@
 package com.example.scannerproto;
 
 
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicYuvToRGB;
-import android.widget.ImageView;
-
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
 public class YUVtoRGB {

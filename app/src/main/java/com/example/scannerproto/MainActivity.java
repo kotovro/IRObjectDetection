@@ -54,22 +54,18 @@ public class MainActivity extends AppCompatActivity {
     private @SuppressLint("RestrictedApi") ImageAnalysis imageAnalysis;
     private static final int PERMISSION_REQUEST_CAMERA = 100;
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
-    private ObjectDetector objectDetector;
-    private DetectedObject detObj;
-
-    private IAddCondition adder;
 
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
-    public static String newObject = new String();
     public final IObjectInfoGetter infoGetter = new SQLiteInfoGetter(MainActivity.this);
-    YUVtoRGB translator = new YUVtoRGB();
     private Bitmap bitmap = null;
     private final int UPDATE_RATE = 1;
     private int frameCount = 0;
     private List<ObjectDetectionResult> barcodeList = new CopyOnWriteArrayList<>();
     private final int[] rgba = new int[1920 * 1080];  //todo
+
+    private boolean isFindingForBarcode = true;
 
 
     @SuppressLint("MissingInflatedId")
@@ -86,12 +82,6 @@ public class MainActivity extends AppCompatActivity {
                                 Barcode.FORMAT_AZTEC)
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
-//        ObjectDetectorOptions options =
-//                new ObjectDetectorOptions.Builder()
-//                        .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
-////                        .enableClassification()  // Optional
-//                        .build();
-//        objectDetector = ObjectDetection.getClient(options);
         preview = findViewById(R.id.preview);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
@@ -171,20 +161,7 @@ public class MainActivity extends AppCompatActivity {
                                 List<Thing> curInfo = new LinkedList<>();
                                 for (ObjectDetectionResult bCode : barcodeList) {
                                     Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-//                                    if (info == null) {
-//                                        if (!isNewObjectFound.get()) {
-//                                            isNewObjectFound.set(true);
-//                                            Log.println(Log.VERBOSE, TAG, newObject);
-//                                            newObject = bCode.getBarcodeMessage();
-//                                            Intent addNewIntent = new Intent(MainActivity.this, AddObjectActivity.class);
-//                                            addNewIntent.putExtra("ObjectName", newObject);
-//                                            startActivity(addNewIntent);
-//                                            addNewIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                                            break;
-//                                        }
-//                                    } else {
-                                        curInfo.add(info);
-//                                    }
+                                    curInfo.add(info);
                                 }
                                 if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
                                     DetectionBound.drawDetection(newBitmap,
