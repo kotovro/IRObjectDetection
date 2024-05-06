@@ -117,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(() -> {
             try {
-
                 imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(MainActivity.this),
                         image -> {
                             @OptIn(markerClass = androidx.camera.core.ExperimentalGetImage.class)
@@ -140,13 +139,13 @@ public class MainActivity extends AppCompatActivity {
                                 barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
                                     for (ObjectDetectionResult bc: barcodeList.keySet()) {
                                         Integer time = barcodeList.get(bc);
-                                        Log.println(Log.VERBOSE, TAG, String.valueOf(time));
                                         barcodeList.put(bc, time - 1);
                                         if (time < 0) {
                                             barcodeList.remove(bc);
                                         }
                                     }
 
+                                    Log.println(Log.VERBOSE, TAG, String.valueOf(barcodes.isEmpty()));
                                     for (Barcode barcode : barcodes) {
                                         ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
@@ -155,12 +154,11 @@ public class MainActivity extends AppCompatActivity {
                                             barcodeList.remove(detectionResult);
                                             barcodeList.put(detectionResult, DECAY_TIME);
                                         } else {
-                                            if (checkForHand() && barcodeList.isEmpty()) {
+                                            if (checkForHand()) {
                                                 barcodeList.put(detectionResult, DECAY_TIME);
                                             }
                                         }
                                     }
-
                                 }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                             }
 
