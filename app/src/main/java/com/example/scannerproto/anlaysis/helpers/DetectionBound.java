@@ -26,16 +26,14 @@ public class DetectionBound {
         paint.setColor(COLOR);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(5);
-        int shiftX = 0;
-        int shiftY = 0;
         int i = 0;
         for (ObjectDetectionResult code: barcodes) {
-            drawBarcode(canvas, code.getBarcode(), curInfo.get(i), shiftX, shiftY);
+            drawBarcode(canvas, code.getBarcode(), curInfo.get(i));
             i++;
         }
         return frame;
     }
-    public static void drawBarcode(Canvas canvas, Barcode barcode, Thing objectInfo, int shiftX, int shiftY) {
+    public static void drawBarcode(Canvas canvas, Barcode barcode, Thing objectInfo) {
         Paint paint = new Paint();
         boolean isUnKnown = Objects.equals(objectInfo, null);
         paint.setColor(isUnKnown ? COLOR2 : COLOR);
@@ -54,18 +52,18 @@ public class DetectionBound {
 //
 //        canvas.drawPath(path, paint);
 
-        canvas.drawLine(barcode.getCornerPoints()[0].x, barcode.getCornerPoints()[0].y + shiftY, barcode.getCornerPoints()[1].x, barcode.getCornerPoints()[1].y + shiftY, paint);
-        canvas.drawLine(barcode.getCornerPoints()[1].x, barcode.getCornerPoints()[1].y + shiftY, barcode.getCornerPoints()[2].x, barcode.getCornerPoints()[2].y + shiftY, paint);
-        canvas.drawLine(barcode.getCornerPoints()[2].x, barcode.getCornerPoints()[2].y + shiftY, barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y + shiftY, paint);
-        canvas.drawLine(barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y + shiftY, barcode.getCornerPoints()[0].x + shiftX, barcode.getCornerPoints()[0].y + shiftY, paint);
+        canvas.drawLine(barcode.getCornerPoints()[0].x, barcode.getCornerPoints()[0].y, barcode.getCornerPoints()[1].x, barcode.getCornerPoints()[1].y , paint);
+        canvas.drawLine(barcode.getCornerPoints()[1].x, barcode.getCornerPoints()[1].y, barcode.getCornerPoints()[2].x, barcode.getCornerPoints()[2].y, paint);
+        canvas.drawLine(barcode.getCornerPoints()[2].x, barcode.getCornerPoints()[2].y, barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y, paint);
+        canvas.drawLine(barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y, barcode.getCornerPoints()[0].x, barcode.getCornerPoints()[0].y, paint);
         paint.setTextSize(50);
 
         paint.setColor(isUnKnown ? COLOR2 : COLOR);
 
         canvas.drawText((isUnKnown ? "Неизвестный объект": objectInfo.getName()),
-                barcode.getCornerPoints()[0].x + shiftX + 20,  barcode.getCornerPoints()[0].y + shiftY + 20, paint);
+                barcode.getCornerPoints()[0].x + 20,  barcode.getCornerPoints()[0].y + 20, paint);
         canvas.drawText((isUnKnown ? "Нет информации": objectInfo.getInfo()),
-                barcode.getCornerPoints()[0].x + shiftX,  barcode.getCornerPoints()[0].y + shiftY + 70, paint);
+                barcode.getCornerPoints()[0].x,  barcode.getCornerPoints()[0].y + 70, paint);
     }
 
     public static Bitmap extractBitmap(Bitmap bitmap) {

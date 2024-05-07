@@ -6,6 +6,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
     private int frameCount = 0;
     private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
     private final int[] rgba = new int[1920 * 1080];  //todo
+    private final int offsetNumin = 1;
+    private final int offsetDenomin = 2;
 
 
     @SuppressLint("MissingInflatedId")
@@ -193,8 +197,29 @@ public class MainActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private boolean checkForHand() {
-        return true;
+    private boolean checkForHand(Barcode barcode, PointF end, PointF start) {
+        Point[] points = barcode.getCornerPoints();
+        int xMax = Math.max(points[1].x, points[2].x);
+        int xMin = Math.min(points[0].x, points[3].x);
+        int yMax = Math.max(points[0].y, points[1].y);
+        int yMin = Math.min(points[2].y, points[3].y);
+
+        int width = xMax - xMin;
+        int height = yMax - yMin;
+        xMin -= width * offsetNumin / offsetDenomin;
+        xMax += width * offsetNumin / offsetDenomin;
+        yMin -= height * offsetNumin / offsetDenomin;
+        yMax += height * offsetNumin / offsetDenomin;
+
+        float endDist = (xMin + width / 2 - end.x) * (xMin + width / 2 - end.x) + (yMin + height / 2 - end.y) * (yMin + height / 2 - end.y);
+        float startDist = (xMin + width / 2 - start.x) * (xMin + width / 2 - start.x) + (yMin + height / 2 - start.y) * (yMin + height / 2 - start.y);
+
+        int y1 = (int) (start.y + (end.y - start.y) * (xMin - start.x) / (end.x - start.x));
+        int y2 = (int) (start.y + (end.y - start.y) * (xMax - start.x) / (end.x - start.x));
+
+        return (xMin < end.x && xMax > end.x && yMin < end.y && yMax > end.y &&
+                (y1 > yMin && y1 < yMax || y2 > yMin && y2 < yMax) &&
+                (endDist < startDist));
     }
 
 }
