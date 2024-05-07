@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    Log.println(Log.VERBOSE, TAG, String.valueOf(barcodes.isEmpty()));
+//                                    Log.println(Log.VERBOSE, TAG, String.valueOf(barcodes.isEmpty()));
                                     for (Barcode barcode : barcodes) {
                                         ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
@@ -185,9 +185,9 @@ public class MainActivity extends AppCompatActivity {
                                     poseDetector.process(inputImage)
                                             .addOnSuccessListener(
                                                     pose -> {
+                                                        leftIndex = null;
+                                                        leftWrist = null;
                                                         for (PoseLandmark poseLandmark: pose.getAllPoseLandmarks()) {
-                                                            leftIndex = null;
-                                                            leftWrist = null;
                                                             if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_INDEX) {
                                                                 leftIndex = poseLandmark.getPosition();
                                                             }
@@ -198,9 +198,15 @@ public class MainActivity extends AppCompatActivity {
                                                     })
                                             .addOnFailureListener(
                                                     e -> {
-                                                        Log.println(Log.ERROR, TAG, "Pose detection failed");
+                                                        Log.e(TAG, "Pose detection failed");
 
                                                     });
+                            if (leftIndex != null) {
+                                Log.println(Log.VERBOSE, TAG, "The X position on index is " + leftIndex.x);
+                            }
+                            if (leftWrist != null){
+                                Log.println(Log.VERBOSE, TAG, "The X position on wrist is " + leftWrist.x);
+                            }
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
