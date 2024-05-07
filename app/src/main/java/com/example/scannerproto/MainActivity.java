@@ -6,6 +6,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,12 +30,20 @@ import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.pose.Pose;
+import com.google.mlkit.vision.pose.PoseDetection;
+import com.google.mlkit.vision.pose.PoseDetector;
+import com.google.mlkit.vision.pose.PoseLandmark;
+import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -54,6 +63,11 @@ public class MainActivity extends AppCompatActivity {
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
+
+    private PointF leftIndex;
+
+    private PointF leftWrist;
+    private PoseDetector poseDetector;
     public final IObjectInfoGetter infoGetter = new SQLiteInfoGetter(MainActivity.this);
     private Bitmap bitmap = null;
     private final int UPDATE_RATE = 1;
@@ -76,6 +90,11 @@ public class MainActivity extends AppCompatActivity {
                                 Barcode.FORMAT_AZTEC)
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
+        PoseDetectorOptions options =
+                new PoseDetectorOptions.Builder()
+                        .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
+                        .build();
+        poseDetector = PoseDetection.getClient(options);
         preview = findViewById(R.id.preview);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
@@ -162,6 +181,26 @@ public class MainActivity extends AppCompatActivity {
                                 }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                             }
 
+                            Task<Pose> result =
+                                    poseDetector.process(inputImage)
+                                            .addOnSuccessListener(
+                                                    pose -> {
+                                                        for (PoseLandmark poseLandmark: pose.getAllPoseLandmarks()) {
+                                                            leftIndex = null;
+                                                            leftWrist = null;
+                                                            if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_INDEX) {
+                                                                leftIndex = poseLandmark.getPosition();
+                                                            }
+                                                            if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_WRIST) {
+                                                                leftWrist = poseLandmark.getPosition();
+                                                            }
+                                                        }
+                                                    })
+                                            .addOnFailureListener(
+                                                    e -> {
+                                                        Log.println(Log.ERROR, TAG, "Pose detection failed");
+
+                                                    });
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
