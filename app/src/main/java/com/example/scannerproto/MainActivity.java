@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
@@ -31,12 +32,20 @@ import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.pose.Pose;
+import com.google.mlkit.vision.pose.PoseDetection;
+import com.google.mlkit.vision.pose.PoseDetector;
+import com.google.mlkit.vision.pose.PoseLandmark;
+import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -56,6 +65,11 @@ public class MainActivity extends AppCompatActivity {
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
+
+    private PointF leftIndex;
+
+    private PointF leftWrist;
+    private PoseDetector poseDetector;
     public final IObjectInfoGetter infoGetter = new SQLiteInfoGetter(MainActivity.this);
     private Bitmap bitmap = null;
     private final int UPDATE_RATE = 1;
@@ -80,6 +94,11 @@ public class MainActivity extends AppCompatActivity {
                                 Barcode.FORMAT_AZTEC)
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
+        PoseDetectorOptions options =
+                new PoseDetectorOptions.Builder()
+                        .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
+                        .build();
+        poseDetector = PoseDetection.getClient(options);
         preview = findViewById(R.id.preview);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
@@ -149,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    Log.println(Log.VERBOSE, TAG, String.valueOf(barcodes.isEmpty()));
                                     for (Barcode barcode : barcodes) {
                                         ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
                                         detectionResult.setBarcodeMessage(barcode.getRawValue());
@@ -158,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                                             barcodeList.remove(detectionResult);
                                             barcodeList.put(detectionResult, DECAY_TIME);
                                         } else {
-                                            if (checkForHand()) {
+                                            if (checkForHand(barcode, leftIndex, leftWrist)) {
                                                 barcodeList.put(detectionResult, DECAY_TIME);
                                             }
                                         }
@@ -166,6 +184,26 @@ public class MainActivity extends AppCompatActivity {
                                 }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                             }
 
+                            Task<Pose> result =
+                                    poseDetector.process(inputImage)
+                                            .addOnSuccessListener(
+                                                    pose -> {
+                                                        for (PoseLandmark poseLandmark: pose.getAllPoseLandmarks()) {
+                                                            leftIndex = null;
+                                                            leftWrist = null;
+                                                            if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_INDEX) {
+                                                                leftIndex = poseLandmark.getPosition();
+                                                            }
+                                                            if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_WRIST) {
+                                                                leftWrist = poseLandmark.getPosition();
+                                                            }
+                                                        }
+                                                    })
+                                            .addOnFailureListener(
+                                                    e -> {
+                                                        Log.println(Log.ERROR, TAG, "Pose detection failed");
+
+                                                    });
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
@@ -197,7 +235,11 @@ public class MainActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private boolean checkForHand(Barcode barcode, PointF end, PointF start) {
+    private boolean checkForHand(Barcode barcode, @Nullable PointF end, @Nullable PointF start) {
+        if (end == null) {
+            return false;
+        }
+
         Point[] points = barcode.getCornerPoints();
         int xMax = Math.max(points[1].x, points[2].x);
         int xMin = Math.min(points[0].x, points[3].x);
@@ -211,15 +253,19 @@ public class MainActivity extends AppCompatActivity {
         yMin -= height * offsetNumin / offsetDenomin;
         yMax += height * offsetNumin / offsetDenomin;
 
-        float endDist = (xMin + width / 2 - end.x) * (xMin + width / 2 - end.x) + (yMin + height / 2 - end.y) * (yMin + height / 2 - end.y);
-        float startDist = (xMin + width / 2 - start.x) * (xMin + width / 2 - start.x) + (yMin + height / 2 - start.y) * (yMin + height / 2 - start.y);
+        if (start == null) {
+            Log.println(Log.VERBOSE, TAG, String.valueOf(xMin + " " + xMax + " " + yMin + " " + yMax));
+            return xMin < end.x && xMax > end.x && yMin < end.y && yMax > end.y;
+        } else {
+            int y1 = (int) (start.y + (end.y - start.y) * (xMin - start.x) / (end.x - start.x));
+            int y2 = (int) (start.y + (end.y - start.y) * (xMax - start.x) / (end.x - start.x));
+            float endDist = (xMin + width / 2 - end.x) * (xMin + width / 2 - end.x) + (yMin + height / 2 - end.y) * (yMin + height / 2 - end.y);
+            float startDist = (xMin + width / 2 - start.x) * (xMin + width / 2 - start.x) + (yMin + height / 2 - start.y) * (yMin + height / 2 - start.y);
 
-        int y1 = (int) (start.y + (end.y - start.y) * (xMin - start.x) / (end.x - start.x));
-        int y2 = (int) (start.y + (end.y - start.y) * (xMax - start.x) / (end.x - start.x));
-
-        return (xMin < end.x && xMax > end.x && yMin < end.y && yMax > end.y &&
-                (y1 > yMin && y1 < yMax || y2 > yMin && y2 < yMax) &&
-                (endDist < startDist));
+            return xMin < end.x && xMax > end.x && yMin < end.y && yMax > end.y &&
+                    (y1 > yMin && y1 < yMax || y2 > yMin && y2 < yMax) &&
+                    (endDist < startDist);
+        }
     }
 
 }

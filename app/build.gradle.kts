@@ -75,6 +75,8 @@ dependencies {
     implementation("com.google.mlkit:image-labeling-custom-common:17.0.0")
     //object detection
     implementation("com.google.mlkit:object-detection:17.0.1")
+    // pose detection
+    implementation("com.google.mlkit:pose-detection:18.0.0-beta4")
 
     // CameraX core library using the camera2 implementation
     //def camerax_version ("1.1.0-alpha08")
