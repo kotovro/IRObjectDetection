@@ -107,4 +107,14 @@ public class DetectionBound {
         canvas.drawCircle(leftIndex.x, leftIndex.y, 15, paint);
         return frame;
     }
+
+    public static void drawSingleDetection(Bitmap bitmap, ObjectDetectionResult targetBarcode, Thing info, int rotation) {
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint();
+        paint.setColor(COLOR);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
+
+        drawBarcode(canvas, targetBarcode.getBarcode(), info);
+    }
 }
