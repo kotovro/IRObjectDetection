@@ -188,9 +188,9 @@ public class MainActivity extends AppCompatActivity {
                                     poseDetector.process(inputImage)
                                             .addOnSuccessListener(
                                                     pose -> {
+                                                        leftIndex = null;
+                                                        leftWrist = null;
                                                         for (PoseLandmark poseLandmark: pose.getAllPoseLandmarks()) {
-                                                            leftIndex = null;
-                                                            leftWrist = null;
                                                             if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_INDEX) {
                                                                 leftIndex = poseLandmark.getPosition();
                                                             }
@@ -201,9 +201,16 @@ public class MainActivity extends AppCompatActivity {
                                                     })
                                             .addOnFailureListener(
                                                     e -> {
-                                                        Log.println(Log.ERROR, TAG, "Pose detection failed");
+                                                        Log.e(TAG, "Pose detection failed");
 
                                                     });
+                            if (leftIndex != null) {
+                                Log.println(Log.VERBOSE, TAG, "The X position on index is " + leftIndex.x);
+
+                            }
+                            if (leftWrist != null){
+                                Log.println(Log.VERBOSE, TAG, "The X position on wrist is " + leftWrist.x);
+                            }
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
@@ -243,8 +250,13 @@ public class MainActivity extends AppCompatActivity {
         Point[] points = barcode.getCornerPoints();
         int xMax = Math.max(points[1].x, points[2].x);
         int xMin = Math.min(points[0].x, points[3].x);
-        int yMax = Math.max(points[0].y, points[1].y);
-        int yMin = Math.min(points[2].y, points[3].y);
+        int yMin = Math.min(points[0].y, points[1].y);
+        int yMax = Math.max(points[2].y, points[3].y);
+
+        Log.println(Log.VERBOSE, TAG, "xmin " + xMin);
+        Log.println(Log.VERBOSE, TAG, "xmax " + xMax);
+        Log.println(Log.VERBOSE, TAG, "ymin " + yMin);
+        Log.println(Log.VERBOSE, TAG, "ymax " + yMax);
 
         int width = xMax - xMin;
         int height = yMax - yMin;
