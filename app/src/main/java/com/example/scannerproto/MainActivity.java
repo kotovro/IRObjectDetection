@@ -199,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
                                             .addOnFailureListener(
                                                     e -> {
                                                         Log.e(TAG, "Pose detection failed");
-
                                                     });
                             if (leftIndex != null) {
                                 Log.println(Log.VERBOSE, TAG, "The X position on index is " + leftIndex.x);
@@ -215,13 +214,17 @@ public class MainActivity extends AppCompatActivity {
                                     curInfo.add(info);
                                 }
                                 if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
-                                    DetectionBound.drawDetection(newBitmap,
-                                            barcodeList.keySet(),
-                                            curInfo,
-                                            (int) preview.getRotation());
+//                                    DetectionBound.drawDetection(newBitmap,
+//                                            barcodeList.keySet(),
+//                                            curInfo,
+//                                            (int) preview.getRotation());
                                 }
                             }
 //                            newBitmap = DetectionBound.prepareBitmap(newBitmap);
+                            if (leftIndex != null)
+                            {
+                                newBitmap = DetectionBound.drawFinger(newBitmap, leftIndex);
+                            }
                             preview.setImageBitmap(newBitmap);
 
                             image.close();

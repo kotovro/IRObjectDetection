@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
@@ -98,5 +99,14 @@ public class DetectionBound {
         comboImage.drawBitmap(bitmap, rectInL, rectOutL , null);
         return comboBitmap;
 
+    }
+
+    public static Bitmap drawFinger(Bitmap frame, PointF leftIndex) {
+        Canvas canvas = new Canvas(frame);
+        Paint paint = new Paint();
+        paint.setColor(COLOR2);
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.drawCircle(leftIndex.x, leftIndex.y, 15, paint);
+        return frame;
     }
 }
