@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
@@ -33,19 +32,14 @@ import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.pose.Pose;
 import com.google.mlkit.vision.pose.PoseDetection;
 import com.google.mlkit.vision.pose.PoseDetector;
-import com.google.mlkit.vision.pose.PoseLandmark;
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions;
 
 import java.util.LinkedList;
@@ -159,8 +153,7 @@ public class MainActivity extends AppCompatActivity {
                             Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
                             InputImage inputImage = InputImage.fromBitmap(newBitmap, 0);
 
-
-                            if ((frameCount % UPDATE_RATE == 0) && !isNewObjectFound.get()) {
+                            if (true) {
                                 barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
                                     for (ObjectDetectionResult bc: barcodeList.keySet()) {
                                         Integer time = barcodeList.get(bc);
@@ -170,88 +163,67 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    for (Barcode barcode : barcodes) {
+                                    if (!barcodes.isEmpty()) {
+                                        Point screenCenter = new Point(inputImage.getWidth() / 2, inputImage.getHeight() / 2);
+                                        Barcode curBarcode = getClosest(barcodes, screenCenter);
+                                        if (barcodes.size() == 2) {
+                                            Log.println(Log.VERBOSE, TAG, "wrong");
+                                        }
+
+
                                         ObjectDetectionResult detectionResult = new ObjectDetectionResult(infoGetter);
-                                        detectionResult.setBarcodeMessage(barcode.getRawValue());
-                                        detectionResult.setBarcode(barcode);
-                                        if (barcodeList.containsKey(detectionResult)) {
+                                        detectionResult.setBarcodeMessage(curBarcode.getRawValue());
+                                        detectionResult.setBarcode(curBarcode);
+
+                                        LinkedList<Barcode> activeBarcodes = new LinkedList<>();
+                                        for (ObjectDetectionResult result: barcodeList.keySet()) {
+                                            activeBarcodes.add(result.getBarcode());
+                                        }
+                                        Barcode mainBarcode = getClosest(activeBarcodes, screenCenter);
+
+                                        // new barcode
+                                        if (detectionResult != null) {
+                                            Thing info = detectionResult.infoGetter.getObjectInfo(detectionResult.getBarcodeMessage());
+                                            if (info != null) {
+                                                DetectionBound.drawSingleDetection(newBitmap,
+                                                        detectionResult,
+                                                        info,
+                                                        (int) preview.getRotation());
+                                            } else {
+                                                isNewObjectFound.set(true);
+                                                Intent intent = new Intent(this, AddObjectActivity.class);
+                                                intent.putExtra("ObjectName", detectionResult.getBarcodeMessage());
+                                                startActivity(intent);
+                                            }
+                                        }
+
+
+                                        if (mainBarcode == null || mainBarcode.getRawValue().equals(curBarcode.getRawValue())) {
                                             barcodeList.remove(detectionResult);
                                             barcodeList.put(detectionResult, DECAY_TIME);
                                         } else {
-                                            if (checkForHand(barcode, leftIndex, leftWrist)) {
-                                                barcodeList.put(detectionResult, DECAY_TIME);
-                                            }
+//                                            Log.println(Log.VERBOSE, TAG, String.valueOf(mainBarcode));
                                         }
                                     }
+
                                 }).addOnFailureListener(e -> Log.e(TAG, "Error processing Image", e));
                             }
 
-//                            Task<Pose> result =
-//                                    poseDetector.process(inputImage)
-//                                            .addOnSuccessListener(
-//                                                    pose -> {
-//                                                        leftIndex = null;
-//                                                        leftWrist = null;
-//                                                        for (PoseLandmark poseLandmark: pose.getAllPoseLandmarks()) {
-//                                                            if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_INDEX) {
-//                                                                leftIndex = poseLandmark.getPosition();
-//                                                            }
-//                                                            if (poseLandmark.getLandmarkType() == PoseLandmark.LEFT_WRIST) {
-//                                                                leftWrist = poseLandmark.getPosition();
-//                                                            }
-//                                                        }
-//                                                    })
-//                                            .addOnFailureListener(
-//                                                    e -> {
-//                                                        Log.e(TAG, "Pose detection failed");
-//                                                    });
-//                            if (leftIndex != null) {
-//                                Log.println(Log.VERBOSE, TAG, "The X position on index is " + leftIndex.x);
-//
-//                            }
-//                            if (leftWrist != null){
-//                                Log.println(Log.VERBOSE, TAG, "The X position on wrist is " + leftWrist.x);
-//                            }
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
-                            ObjectDetectionResult targetBarcode = null;
-                            AtomicInteger minDist = new AtomicInteger(Integer.MAX_VALUE);
-                            AtomicInteger curDist = new AtomicInteger();
-                            Point screenCenter = new Point(newBitmap.getWidth() / 2, newBitmap.getHeight() / 2);
 
-                            for (ObjectDetectionResult barcode: barcodeList.keySet()) {
-                                curDist.set(distance(calcCenter(barcode.getBarcode()), screenCenter));
-                                if (curDist.get() <  minDist.get()) {
-                                    minDist.set(curDist.get());
-                                    targetBarcode = barcode;
+                            if (!barcodeList.isEmpty()) {
+                                List<Thing> curInfo = new LinkedList<>();
+                                for (ObjectDetectionResult bCode : barcodeList.keySet()) {
+                                    Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
+                                    curInfo.add(info);
                                 }
-                            }
-                            if (targetBarcode != null) {
-                                Thing info = targetBarcode.infoGetter.getObjectInfo(targetBarcode.getBarcodeMessage());
-                                if (info != null) {
-                                    DetectionBound.drawSingleDetection(newBitmap,
-                                                                targetBarcode,
-                                                                info,
+                                if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
+                                    DetectionBound.drawDetection(newBitmap,
+                                            barcodeList.keySet(),
+                                            curInfo,
                                             (int) preview.getRotation());
-                                } else {
-                                    isNewObjectFound.set(true);
-                                    Intent intent = new Intent(this, AddObjectActivity.class);
-                                    intent.putExtra("ObjectName", targetBarcode.getBarcodeMessage());
-                                    startActivity(intent);
                                 }
                             }
-//                            if (!barcodeList.isEmpty()) {
-//                                List<Thing> curInfo = new LinkedList<>();
-//                                for (ObjectDetectionResult bCode : barcodeList.keySet()) {
-//                                    Thing info = bCode.infoGetter.getObjectInfo(bCode.getBarcodeMessage());
-//                                    curInfo.add(info);
-//                                }
-//                                if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
-//                                    DetectionBound.drawDetection(newBitmap,
-//                                            barcodeList.keySet(),
-//                                            curInfo,
-//                                            (int) preview.getRotation());
-//                                }
-//                            }
 //                            newBitmap = DetectionBound.prepareBitmap(newBitmap);
 //                            if (leftIndex != null)
 //                            {
@@ -287,42 +259,20 @@ public class MainActivity extends AppCompatActivity {
 
         return new Point((xMax + xMin) / 2, (yMax + yMin) / 2);
     }
-    private boolean checkForHand(Barcode barcode, @Nullable PointF end, @Nullable PointF start) {
-        if (end == null) {
-            return false;
+
+    private Barcode getClosest(List<Barcode> barcodes, Point center) {
+        Barcode targetBarcode = null;
+        AtomicInteger minDist = new AtomicInteger(Integer.MAX_VALUE);
+        AtomicInteger curDist = new AtomicInteger();
+
+        for (Barcode barcode: barcodes) {
+            curDist.set(distance(calcCenter(barcode), center));
+            if (curDist.get() <  minDist.get()) {
+                minDist.set(curDist.get());
+                targetBarcode = barcode;
+            }
         }
 
-        Point[] points = barcode.getCornerPoints();
-        int xMax = Math.max(points[1].x, points[2].x);
-        int xMin = Math.min(points[0].x, points[3].x);
-        int yMin = Math.min(points[0].y, points[1].y);
-        int yMax = Math.max(points[2].y, points[3].y);
-
-        Log.println(Log.VERBOSE, TAG, "xmin " + xMin);
-        Log.println(Log.VERBOSE, TAG, "xmax " + xMax);
-        Log.println(Log.VERBOSE, TAG, "ymin " + yMin);
-        Log.println(Log.VERBOSE, TAG, "ymax " + yMax);
-
-        int width = xMax - xMin;
-        int height = yMax - yMin;
-        xMin -= width * offsetNumin / offsetDenomin;
-        xMax += width * offsetNumin / offsetDenomin;
-        yMin -= height * offsetNumin / offsetDenomin;
-        yMax += height * offsetNumin / offsetDenomin;
-
-        if (start == null) {
-            Log.println(Log.VERBOSE, TAG, String.valueOf(xMin + " " + xMax + " " + yMin + " " + yMax));
-            return xMin < end.x && xMax > end.x && yMin < end.y && yMax > end.y;
-        } else {
-            int y1 = (int) (start.y + (end.y - start.y) * (xMin - start.x) / (end.x - start.x));
-            int y2 = (int) (start.y + (end.y - start.y) * (xMax - start.x) / (end.x - start.x));
-            float endDist = (xMin + width / 2 - end.x) * (xMin + width / 2 - end.x) + (yMin + height / 2 - end.y) * (yMin + height / 2 - end.y);
-            float startDist = (xMin + width / 2 - start.x) * (xMin + width / 2 - start.x) + (yMin + height / 2 - start.y) * (yMin + height / 2 - start.y);
-
-            return xMin < end.x && xMax > end.x && yMin < end.y && yMax > end.y &&
-                    (y1 > yMin && y1 < yMax || y2 > yMin && y2 < yMax) &&
-                    (endDist < startDist);
-        }
+        return targetBarcode;
     }
-
 }
