@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.media.Image;
@@ -27,6 +28,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.scannerproto.anlaysis.helpers.Chat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private @SuppressLint("RestrictedApi") ImageAnalysis imageAnalysis;
     private static final int PERMISSION_REQUEST_CAMERA = 100;
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
-    private static final Integer DECAY_TIME = 30;
+    private static final Integer DECAY_TIME = 50;
 
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
@@ -74,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private final int[] rgba = new int[1920 * 1080];  //todo
     private final int offsetNumin = 1;
     private final int offsetDenomin = 2;
+    private final Chat chat = new Chat();
 
 
     @SuppressLint("MissingInflatedId")
@@ -211,6 +214,12 @@ public class MainActivity extends AppCompatActivity {
 
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
 
+                            if (Math.random() < 0.1) {
+                                chat.addMessage("Barcode found!");
+                            }
+                            chat.drawChat(new Canvas(newBitmap));
+                            chat.tick();
+
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
                                 for (ObjectDetectionResult bCode : barcodeList.keySet()) {
@@ -224,12 +233,12 @@ public class MainActivity extends AppCompatActivity {
                                             (int) preview.getRotation());
                                 }
                             }
-//                            newBitmap = DetectionBound.prepareBitmap(newBitmap);
+//                            Bitmap tmp = DetectionBound.prepareBitmap(newBitmap);
 //                            if (leftIndex != null)
 //                            {
 //                                newBitmap = DetectionBound.drawFinger(newBitmap, leftIndex);
 //                            }
-                            preview.setImageBitmap(newBitmap);
+                            preview.setImageBitmap(newBitmap );
 
                             image.close();
                             frameCount++;
