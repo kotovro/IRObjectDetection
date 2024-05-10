@@ -33,17 +33,12 @@ import java.io.IOException;
 public class AddObjectActivity extends AppCompatActivity {
 
     private IObjectInfoSetter infoSetter = new SQLiteInfoGetter(AddObjectActivity.this);
-    private IObjectInfoAdder<Thing> adder = new SimpleObjectAdder();
     private EditText nameEditText;
     private EditText infoEditText;
 
     private String receivedString;
     private ITextValidator validator = new SimpleTextValidator();
 
-    public void onReturn(View view) {
-        MainActivity.isNewObjectFound.set(false);
-        finish();
-    }
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -73,6 +68,7 @@ public class AddObjectActivity extends AppCompatActivity {
                 MainActivity.isNewObjectFound.set(false);
             }
             else {
+                MainActivity.isNewObjectFound.set(false);
                 finish();
             }
         } else {

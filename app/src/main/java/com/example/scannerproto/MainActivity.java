@@ -54,29 +54,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView preview;
     private @SuppressLint("RestrictedApi") ImageAnalysis imageAnalysis;
     private static final int PERMISSION_REQUEST_CAMERA = 100;
     ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
-    private static final Integer DECAY_TIME = 50;
-
-    public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
-
-    private PointF leftIndex;
-
-    private PointF leftWrist;
-    private PoseDetector poseDetector;
     public final IObjectInfoGetter infoGetter = new SQLiteInfoGetter(MainActivity.this);
-    private Bitmap bitmap = null;
-    private final int UPDATE_RATE = 1;
-    private int frameCount = 0;
-    private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
+    private ImageView preview = findViewById(R.id.preview);
+    private Bitmap bitmap;
     private final int[] rgba = new int[1920 * 1080];  //todo
-    private final int offsetNumin = 1;
-    private final int offsetDenomin = 2;
     private final Chat chat = new Chat();
+    private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
+
+    public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
+    public static final Integer DECAY_TIME = 40;
 
 
     @SuppressLint("MissingInflatedId")
@@ -93,12 +84,8 @@ public class MainActivity extends AppCompatActivity {
                                 Barcode.FORMAT_AZTEC)
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
-        PoseDetectorOptions options =
-                new PoseDetectorOptions.Builder()
-                        .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
-                        .build();
-        poseDetector = PoseDetection.getClient(options);
         preview = findViewById(R.id.preview);
+        bitmap = Bitmap.createBitmap(preview.getWidth(), preview.getHeight(), Bitmap.Config.ARGB_8888);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -149,8 +136,6 @@ public class MainActivity extends AppCompatActivity {
                             YUVtoRGB.decodeYUV420SP(rgba, bytes, img.getWidth(), img.getHeight());
 
                             //todo create on app init
-                            bitmap = bitmap == null ?
-                                    Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888) : bitmap;
                             bitmap.setPixels(rgba, 0, img.getWidth(), 0, 0, img.getWidth(), img.getHeight());
 
                             Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
@@ -187,16 +172,13 @@ public class MainActivity extends AppCompatActivity {
                                         // new barcode
                                         if (detectionResult != null) {
                                             Thing info = detectionResult.infoGetter.getObjectInfo(detectionResult.getBarcodeMessage());
-                                            if (info != null) {
-                                                DetectionBound.drawSingleDetection(newBitmap,
-                                                        detectionResult,
-                                                        info,
-                                                        (int) preview.getRotation());
-                                            } else {
-                                                isNewObjectFound.set(true);
-                                                Intent intent = new Intent(this, AddObjectActivity.class);
-                                                intent.putExtra("ObjectName", detectionResult.getBarcodeMessage());
-                                                startActivity(intent);
+                                            if (info == null) {
+                                                if (!isNewObjectFound.get()) {
+                                                    isNewObjectFound.set(true);
+                                                    Intent intent = new Intent(this, AddObjectActivity.class);
+                                                    intent.putExtra("ObjectName", detectionResult.getBarcodeMessage());
+                                                    startActivity(intent);
+                                                }
                                             }
                                         }
 
@@ -205,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                                             barcodeList.remove(detectionResult);
                                             barcodeList.put(detectionResult, DECAY_TIME);
                                         } else {
-//                                            Log.println(Log.VERBOSE, TAG, String.valueOf(mainBarcode));
+                                            Log.println(Log.VERBOSE, TAG, String.valueOf(mainBarcode));
                                         }
                                     }
 
@@ -229,19 +211,15 @@ public class MainActivity extends AppCompatActivity {
                                 if (!curInfo.isEmpty() && !isNewObjectFound.get()) {
                                     DetectionBound.drawDetection(newBitmap,
                                             barcodeList.keySet(),
+                                            barcodeList,
                                             curInfo,
                                             (int) preview.getRotation());
                                 }
                             }
-//                            Bitmap tmp = DetectionBound.prepareBitmap(newBitmap);
-//                            if (leftIndex != null)
-//                            {
-//                                newBitmap = DetectionBound.drawFinger(newBitmap, leftIndex);
-//                            }
-                            preview.setImageBitmap(newBitmap );
+                            Bitmap temp = DetectionBound.prepareBitmap(newBitmap);
+                            preview.setImageBitmap(temp);
 
                             image.close();
-                            frameCount++;
                         });
 
                 cameraProviderFuture.get().bindToLifecycle(MainActivity.this, cameraSelector, imageAnalysis);
