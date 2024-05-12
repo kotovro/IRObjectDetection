@@ -1,4 +1,4 @@
-package com.example.scannerproto.anlaysis.helpers;
+package com.example.scannerproto.anlaysis.helpers.overlays;
 
 import static android.content.ContentValues.TAG;
 

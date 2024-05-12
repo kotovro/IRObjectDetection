@@ -1,4 +1,4 @@
-package com.example.scannerproto.anlaysis.helpers;
+package com.example.scannerproto.anlaysis.helpers.overlays;
 
 import android.graphics.Canvas;
 import android.graphics.Color;

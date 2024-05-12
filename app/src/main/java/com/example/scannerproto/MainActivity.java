@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
-import android.graphics.PointF;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,21 +27,20 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.scannerproto.anlaysis.helpers.Chat;
+import com.example.scannerproto.anlaysis.helpers.drone_utils.ServerConnection;
+import com.example.scannerproto.anlaysis.helpers.overlays.Chat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.ObjectDetectionResult;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.mockdb.Thing;
+import com.example.scannerproto.anlaysis.helpers.overlays.StateTable;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.pose.PoseDetection;
-import com.google.mlkit.vision.pose.PoseDetector;
-import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -69,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     public static final Integer DECAY_TIME = 40;
 
+//    private StateTable table = new StateTable();
+//    private ServerConnection connection = new ServerConnection();
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -93,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
         cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
+
+//        connection.register();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
@@ -196,11 +199,13 @@ public class MainActivity extends AppCompatActivity {
 
                             preview.setRotation(image.getImageInfo().getRotationDegrees());
 
-                            if (Math.random() < 0.1) {
-                                chat.addMessage("Barcode found!");
-                            }
-                            chat.drawChat(new Canvas(newBitmap));
-                            chat.tick();
+//                            if (Math.random() < 0.1) {
+//                                chat.addMessage("Barcode found!");
+//                            }
+//                            chat.drawChat(new Canvas(newBitmap));
+//                            chat.tick();
+//                            connection.updateStates();
+//                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
