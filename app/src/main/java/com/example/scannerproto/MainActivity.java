@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private BarcodeScanner barcodeScanner;
     private CameraSelector cameraSelector;
     public final IObjectInfoGetter infoGetter = new SQLiteInfoGetter(MainActivity.this);
-    private ImageView preview = findViewById(R.id.preview);
+    private ImageView preview;
     private Bitmap bitmap;
     private final int[] rgba = new int[1920 * 1080];  //todo
     private final Chat chat = new Chat();
@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     public static final Integer DECAY_TIME = 40;
 
-//    private StateTable table = new StateTable();
-//    private ServerConnection connection = new ServerConnection();
+    private StateTable table = new StateTable();
+    private ServerConnection connection;
 
 
     @SuppressLint("MissingInflatedId")
@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
                         .build();
         barcodeScanner = BarcodeScanning.getClient(bOptions);
         preview = findViewById(R.id.preview);
-        bitmap = Bitmap.createBitmap(preview.getWidth(), preview.getHeight(), Bitmap.Config.ARGB_8888);
         imageAnalysis = new ImageAnalysis.Builder()
                 .setTargetResolution(new Size(1024, 768))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -95,7 +94,8 @@ public class MainActivity extends AppCompatActivity {
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
 
-//        connection.register();
+        connection = new ServerConnection();
+        connection.execute();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
@@ -139,6 +139,8 @@ public class MainActivity extends AppCompatActivity {
                             YUVtoRGB.decodeYUV420SP(rgba, bytes, img.getWidth(), img.getHeight());
 
                             //todo create on app init
+                            bitmap = bitmap == null ?
+                                    Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888) : bitmap;
                             bitmap.setPixels(rgba, 0, img.getWidth(), 0, 0, img.getWidth(), img.getHeight());
 
                             Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
@@ -206,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
 //                            chat.tick();
 //                            connection.updateStates();
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
+                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
@@ -221,8 +224,9 @@ public class MainActivity extends AppCompatActivity {
                                             (int) preview.getRotation());
                                 }
                             }
-                            Bitmap temp = DetectionBound.prepareBitmap(newBitmap);
-                            preview.setImageBitmap(temp);
+//                            Bitmap temp = DetectionBound.prepareBitmap(newBitmap);
+
+                            preview.setImageBitmap(newBitmap);
 
                             image.close();
                         });
