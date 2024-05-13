@@ -93,8 +93,11 @@ public class MainActivity extends AppCompatActivity {
         cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
-
-        connection = new ServerConnection();
+        //get server data from extras
+        String serverIP = getIntent().getStringExtra("ServerIP");
+        String port = getIntent().getStringExtra("Port");
+        int number = Integer.parseInt(port);
+        connection = new ServerConnection(serverIP, number);
         connection.execute();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
