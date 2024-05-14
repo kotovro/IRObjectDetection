@@ -28,7 +28,9 @@ public class ConnectActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("ServerIP", editServerIP.getText().toString());
             intent.putExtra("Port", editPort.getText().toString());
+            finish();
             startActivity(intent);
+
         }
     }
 }
