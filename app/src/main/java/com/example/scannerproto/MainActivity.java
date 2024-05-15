@@ -96,6 +96,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         connection = new UDPServer();
+        //get server data from extras
+//        String serverIP = getIntent().getStringExtra("ServerIP");
+//        String port = getIntent().getStringExtra("Port");
+//        int number = Integer.parseInt(port);
+//        connection = new ServerConnection(serverIP, number);
         connection.execute();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {

@@ -16,6 +16,9 @@ import java.net.UnknownHostException;
 
 public class ServerConnection extends AsyncTask<Void, Void, Void> {
     private Socket socket;
+
+    private String hostName = "192.168.31.5";
+    private int portNumber = 8000;
     private BufferedReader in;
     private PrintWriter out;
     private DroneActionState[] states = new DroneActionState[8];
@@ -25,7 +28,13 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
             states[i] = DroneActionState.DISABLED;
         }
     }
-
+    public ServerConnection(String hostName, int portNumber) {
+        this.hostName = hostName;
+        this.portNumber = portNumber;
+        for (int i = 0; i < states.length; i++) {
+            states[i] = DroneActionState.DISABLED;
+        }
+    }
     @Override
     protected Void doInBackground(Void... voids) {
         init();
@@ -37,7 +46,7 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
 
     public void init() {
         try {
-            socket = new Socket("192.168.31.5", 8000);
+            socket = new Socket(hostName, portNumber);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream());
         } catch (UnknownHostException e) {

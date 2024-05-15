@@ -30,7 +30,7 @@ public class StateTable {
         int textSize = (int) textPaint.getTextSize();
         Rect rect = new Rect();
         for (int i = 0; i < messages.length; i++) {
-            rect.set(600, 310 + i * textSize * 12 / 10, 1024, 310 + (i + 1) * textSize * 12 / 10);
+            rect.set(400, 310 + i * textSize * 12 / 10, 1024, 310 + (i + 1) * textSize * 12 / 10);
             drawComponent(canvas, textPaint, backPaint, rect, messages[i], states[i]);
         }
     }
