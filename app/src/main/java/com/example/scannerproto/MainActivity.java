@@ -15,6 +15,7 @@ import android.util.Log;
 import android.util.Size;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
     private StateTable table = new StateTable();
     private UDPServer connection = new UDPServer();
-    public  static AtomicBoolean isChat = new AtomicBoolean(true);
+    public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
 
 
     @SuppressLint("MissingInflatedId")
@@ -126,8 +127,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSettings(View view){
-        Intent intent = new Intent(this, SelectLayoutActivity.class);
-        startActivity(intent);
+        isChat.set(!isChat.get());
+        Button btn = findViewById(R.id.button2);
+        if (isChat.get()) {
+            btn.setText("Дрон".toCharArray(), 0, 4);
+        } else {
+            btn.setText("Рука".toCharArray(), 0, 4);
+        }
     }
 
     @Override
@@ -220,8 +226,10 @@ public class MainActivity extends AppCompatActivity {
                                 chat.tick();
                             }
                             else {
+
 //                                table.drawTable(canvas);
                             }
+                            Log.println(Log.VERBOSE, TAG, "Is chat enabled: " + isChat.get());
 //                            connection.updateStates();
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
