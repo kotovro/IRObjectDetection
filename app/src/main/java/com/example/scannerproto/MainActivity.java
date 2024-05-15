@@ -28,6 +28,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.scannerproto.anlaysis.helpers.drone_utils.ServerConnection;
+import com.example.scannerproto.anlaysis.helpers.drone_utils.UDPServer;
 import com.example.scannerproto.anlaysis.helpers.overlays.Chat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     public static final Integer DECAY_TIME = 40;
 
     private StateTable table = new StateTable();
-    private ServerConnection connection;
+    private UDPServer connection;
 
 
     @SuppressLint("MissingInflatedId")
@@ -94,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
 
-        connection = new ServerConnection();
+        connection = new UDPServer();
         connection.execute();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {

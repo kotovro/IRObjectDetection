@@ -30,11 +30,9 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... voids) {
         init();
         register();
-        for (int i = 0; i < 100000000; i++) {
+        while (true){
             updateStates();
         }
-
-        return null;
     }
 
     public void init() {
@@ -79,16 +77,6 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
             }
         } catch (IOException e) {
             throw new RuntimeException("Socket read error");
-        }
-    }
-
-    public void closeSocket() {
-        try {
-            in.close();
-            out.close();
-            socket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 

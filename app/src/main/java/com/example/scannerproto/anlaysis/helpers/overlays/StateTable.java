@@ -8,7 +8,7 @@ import android.graphics.Rect;
 import com.example.scannerproto.anlaysis.helpers.drone_utils.DroneActionState;
 
 public class StateTable {
-    String[] messages = new String[8];
+    String[] messages = new String[4];
     Paint textPaint;
     Paint backPaint;
 
@@ -20,14 +20,10 @@ public class StateTable {
         backPaint = new Paint();
         backPaint.setStyle(Paint.Style.FILL);
 
-        messages[0] = "Движение вверх";
-        messages[1] = "Движение вниз";
-        messages[2] = "Движение влево";
-        messages[3] = "Движение вправо";
-        messages[4] = "Движение вперёд";
-        messages[5] = "Движение назад";
-        messages[6] = "Поворот по часовой";
-        messages[7] = "Поворот против часовой";
+        messages[0] = "Движение влево";
+        messages[1] = "Движение вперёд";
+        messages[2] = "Движение вверх";
+        messages[3] = "Поворот по часовой";
     }
 
     public void drawTable(Canvas canvas, DroneActionState[] states) {
