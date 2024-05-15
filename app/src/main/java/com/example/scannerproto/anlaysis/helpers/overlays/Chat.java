@@ -9,12 +9,20 @@ import java.util.LinkedList;
 
 public class Chat {
     LinkedList<ChatComponent> messages = new LinkedList<>();
+    LinkedList<ChatComponent> specialMessages = new LinkedList<>();
+    LinkedList<Rect> rects = new LinkedList<>();
     Paint textPaint;
     Paint backPaint;
 
+    public static Rect left = new Rect(10 , 375, 100, 375 + 15 * 12 / 10);
+    public static Rect right = new Rect(600 , 375, 700, 375 + 15 * 12 / 10);
+    public static Rect top = new Rect(275 , 250, 350, 250 + 15 * 12 / 10);
+    public static Rect bottom = new Rect(275 , 500, 350, 500 + 15 * 12 / 10);
+
+
     public Chat() {
         textPaint = new Paint();
-        textPaint.setTextSize(25);
+        textPaint.setTextSize(15);
         textPaint.setColor(Color.WHITE);
 
         backPaint = new Paint();
@@ -23,16 +31,25 @@ public class Chat {
         backPaint.setAlpha(127);
     }
 
-    public void addMessage(String message) {
-        messages.addLast(new ChatComponent(message));
+    public void addMessage(String message, Rect rect) {
+        if (rect != null) {
+            specialMessages.addLast(new ChatComponent(message));
+            rects.addLast(rect);
+        } else {
+            messages.addLast(new ChatComponent(message));
+        }
     }
 
     public void drawChat(Canvas canvas) {
+
         int textSize = (int) textPaint.getTextSize();
         Rect rect = new Rect();
         for (int i = 0; i < messages.size(); i++) {
-            rect.set(700, 310 + i * textSize * 12 / 10, 1024, 310 + (i + 1) * textSize * 12 / 10);
+            rect.set(500, 250 + i * textSize * 12 / 10, 1024, 250 + (i + 1) * textSize * 12 / 10);
             messages.get(messages.size() - 1 - i).drawComponent(canvas, textPaint, backPaint, rect);
+        }
+        for (int i = 0; i < specialMessages.size(); i++) {
+            specialMessages.get(i).drawComponent(canvas, textPaint, backPaint, rects.get(i));
         }
     }
 
@@ -47,5 +64,21 @@ public class Chat {
         if (toDel > 0) {
             messages.subList(0, toDel).clear();
         }
+        toDel = 0;
+        for (int i = 0; i < specialMessages.size(); i++) {
+            specialMessages.get(i).tick();
+            if (specialMessages.get(i).isOver()) {
+                toDel++;
+            }
+        }
+        if (toDel > 0) {
+            rects.subList(0, toDel).clear();
+            specialMessages.subList(0, toDel).clear();
+        }
+    }
+
+    public void addSpecialMessage(String message, Rect rect) {
+        specialMessages.addLast(new ChatComponent(message));
+        rects.addLast(rect);
     }
 }

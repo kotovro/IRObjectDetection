@@ -8,7 +8,7 @@ import com.google.android.material.animation.ArgbEvaluatorCompat;
 public class DroneActionState {
 
 
-    private static int intensity = 0;
+    private int intensity = 0;
 
     public int getIntensity() {
         return intensity;
@@ -27,6 +27,6 @@ public class DroneActionState {
     public Integer getColor() {
         int color1 = Color.parseColor("grey");
         int color2 = intensity > 0 ? Color.parseColor("green") : Color.parseColor("red");
-        return (Integer) new ArgbEvaluator().evaluate((float) intensity / 50, color1, color2);
+        return intensity == 0 ? color1 : color2;
     }
 }

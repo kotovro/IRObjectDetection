@@ -13,6 +13,7 @@ import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -69,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
     public static final Integer DECAY_TIME = 40;
 
     private StateTable table = new StateTable();
-    private UDPServer connection;
+    private UDPServer connection = new UDPServer();
+    public  static AtomicBoolean isChat = new AtomicBoolean(true);
 
 
     @SuppressLint("MissingInflatedId")
@@ -123,6 +125,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onSettings(View view){
+        Intent intent = new Intent(this, SelectLayoutActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     public void onDestroy() {
@@ -208,11 +214,17 @@ public class MainActivity extends AppCompatActivity {
 //                            if (Math.random() < 0.1) {
 //                                chat.addMessage("Barcode found!");
 //                            }
-//                            chat.drawChat(new Canvas(newBitmap));
-//                            chat.tick();
+                            if (isChat.get()) {
+                                connection.updateChat(chat);
+                                chat.drawChat(new Canvas(newBitmap));
+                                chat.tick();
+                            }
+                            else {
+//                                table.drawTable(canvas);
+                            }
 //                            connection.updateStates();
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
-                            table.drawTable(new Canvas(newBitmap), connection.getStates());
+//                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
@@ -228,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
                                             (int) preview.getRotation());
                                 }
                             }
-//                            Bitmap temp = DetectionBound.prepareBitmap(newBitmap);
+                            Bitmap temp = DetectionBound.prepareBitmap(newBitmap);
 
                             preview.setImageBitmap(newBitmap);
 

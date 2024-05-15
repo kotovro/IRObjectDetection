@@ -44,4 +44,8 @@ public class StateTable {
         canvas.drawRect(rect, backPaint);
         canvas.drawText(text, textX, textY, textPaint);
     }
+
+    public void drawCurrentState(Canvas canvas, DroneActionState state) {
+
+    }
 }

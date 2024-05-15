@@ -25,14 +25,15 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
 
     public ServerConnection() {
         for (int i = 0; i < states.length; i++) {
-            states[i] = DroneActionState.DISABLED;
+            states[i] = new DroneActionState(0);
+
         }
     }
     public ServerConnection(String hostName, int portNumber) {
         this.hostName = hostName;
         this.portNumber = portNumber;
         for (int i = 0; i < states.length; i++) {
-            states[i] = DroneActionState.DISABLED;
+            states[i] = new DroneActionState(0);
         }
     }
     @Override

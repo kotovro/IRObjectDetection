@@ -17,18 +17,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ScannerProto"
         tools:targetApi="33">
-        <activity android:name=".SettingsActivity"
+        <activity android:name=".SelectLayoutActivity"
             android:screenOrientation="landscape"
-            android:exported="false"
-            />
+            android:exported="false" />
         <activity android:name=".AddObjectActivity"
             android:screenOrientation="landscape"
             android:exported="false" />
-        <activity android:name=".MainActivity"
+        <activity android:name=".ConnectActivity"
             android:screenOrientation="landscape"
             android:exported="false" />
         <activity
-            android:name=".ConnectActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>

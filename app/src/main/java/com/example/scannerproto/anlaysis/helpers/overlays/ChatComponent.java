@@ -5,7 +5,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 
 public class ChatComponent {
-    private static int lifeTime = 25;
+    private static int lifeTime = 40;
     private String text;
     private int time;
 
