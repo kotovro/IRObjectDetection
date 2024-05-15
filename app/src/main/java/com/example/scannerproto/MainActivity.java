@@ -13,7 +13,6 @@ import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -29,6 +28,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.scannerproto.anlaysis.helpers.drone_utils.ServerConnection;
+import com.example.scannerproto.anlaysis.helpers.drone_utils.UDPServer;
 import com.example.scannerproto.anlaysis.helpers.overlays.Chat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
@@ -69,8 +69,7 @@ public class MainActivity extends AppCompatActivity {
     public static final Integer DECAY_TIME = 40;
 
     private StateTable table = new StateTable();
-    private ServerConnection connection;
-    public static AtomicBoolean isTableUi = new AtomicBoolean(true);
+    private UDPServer connection;
 
 
     @SuppressLint("MissingInflatedId")
@@ -96,10 +95,10 @@ public class MainActivity extends AppCompatActivity {
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
         //get server data from extras
-        String serverIP = getIntent().getStringExtra("ServerIP");
-        String port = getIntent().getStringExtra("Port");
-        int number = Integer.parseInt(port);
-        connection = new ServerConnection(serverIP, number);
+//        String serverIP = getIntent().getStringExtra("ServerIP");
+//        String port = getIntent().getStringExtra("Port");
+//        int number = Integer.parseInt(port);
+//        connection = new ServerConnection(serverIP, number);
         connection.execute();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -124,11 +123,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onSettings(View view) {
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
-        finish();
-    }
 
     @Override
     public void onDestroy() {
@@ -217,14 +211,8 @@ public class MainActivity extends AppCompatActivity {
 //                            chat.drawChat(new Canvas(newBitmap));
 //                            chat.tick();
 //                            connection.updateStates();
-//
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
-                            if (isTableUi.get()) {
-                                table.drawTable(new Canvas(newBitmap), connection.getStates());
-                            } else {
-                                chat.drawChat(new Canvas(newBitmap));
-                            }
-
+                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
@@ -287,6 +275,4 @@ public class MainActivity extends AppCompatActivity {
 
         return targetBarcode;
     }
-
-
 }
