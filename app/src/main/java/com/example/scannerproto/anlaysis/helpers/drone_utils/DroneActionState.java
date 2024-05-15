@@ -1,16 +1,32 @@
 package com.example.scannerproto.anlaysis.helpers.drone_utils;
 
+import android.animation.ArgbEvaluator;
 import android.graphics.Color;
 
-public enum DroneActionState {
-    ENABLED(Color.GREEN), DISABLED(Color.RED);
-    private int color;
+import com.google.android.material.animation.ArgbEvaluatorCompat;
 
-    DroneActionState(int color) {
-        this.color = color;
+public class DroneActionState {
+
+
+    private static int intensity = 0;
+
+    public int getIntensity() {
+        return intensity;
     }
 
-    public int getColor() {
-        return color;
+    public void setIntensity(int intensity) {
+        this.intensity = intensity;
+    }
+
+    DroneActionState(int intensity) {
+        this.intensity = intensity;
+    }
+
+
+
+    public Integer getColor() {
+        int color1 = Color.parseColor("grey");
+        int color2 = intensity > 0 ? Color.parseColor("green") : Color.parseColor("red");
+        return (Integer) new ArgbEvaluator().evaluate((float) intensity / 50, color1, color2);
     }
 }
