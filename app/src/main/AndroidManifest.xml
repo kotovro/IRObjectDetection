@@ -17,6 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ScannerProto"
         tools:targetApi="33">
+        <activity android:name=".SettingsActivity"
+            android:screenOrientation="landscape"
+            android:exported="false"
+            />
         <activity android:name=".AddObjectActivity"
             android:screenOrientation="landscape"
             android:exported="false" />

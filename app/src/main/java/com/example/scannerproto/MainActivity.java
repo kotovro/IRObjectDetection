@@ -13,6 +13,7 @@ import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
     private StateTable table = new StateTable();
     private ServerConnection connection;
+    public static AtomicBoolean isTableUi = new AtomicBoolean(true);
 
 
     @SuppressLint("MissingInflatedId")
@@ -122,6 +124,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onSettings(View view) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
     @Override
     public void onDestroy() {
@@ -210,8 +217,14 @@ public class MainActivity extends AppCompatActivity {
 //                            chat.drawChat(new Canvas(newBitmap));
 //                            chat.tick();
 //                            connection.updateStates();
+//
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
-                            table.drawTable(new Canvas(newBitmap), connection.getStates());
+                            if (isTableUi.get()) {
+                                table.drawTable(new Canvas(newBitmap), connection.getStates());
+                            } else {
+                                chat.drawChat(new Canvas(newBitmap));
+                            }
+
 
                             if (!barcodeList.isEmpty()) {
                                 List<Thing> curInfo = new LinkedList<>();
@@ -274,4 +287,6 @@ public class MainActivity extends AppCompatActivity {
 
         return targetBarcode;
     }
+
+
 }
