@@ -14,10 +14,7 @@ public class Chat {
     Paint textPaint;
     Paint backPaint;
 
-    public static Rect left = new Rect(10 , 375, 100, 375 + 15 * 12 / 10);
-    public static Rect right = new Rect(600 , 375, 700, 375 + 15 * 12 / 10);
-    public static Rect top = new Rect(275 , 250, 350, 250 + 15 * 12 / 10);
-    public static Rect bottom = new Rect(275 , 500, 350, 500 + 15 * 12 / 10);
+
 
 
     public Chat() {

@@ -30,9 +30,9 @@ public class UDPServer extends AsyncTask<Void, Void, Void> {
         for (int i = 0; i < states.length; i++) {
             states[i] = new DroneActionState(0);
         }
-        ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", Chat.right, null, Chat.left);
+        ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left);
         ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null);
-        ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", Chat.bottom, null, Chat.top);
+        ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", DroneMovements.bottom, null, DroneMovements.top);
         ports[3] = new DroneMovements("Против часовой", "Остановка поворота", "По часовой", null, null, null);
     }
 
@@ -48,9 +48,6 @@ public class UDPServer extends AsyncTask<Void, Void, Void> {
             String command = new String(receivePacket.getData(), 0, receivePacket.getLength());
             Log.println(Log.VERBOSE, TAG, Arrays.toString(SocketUtils.parseInput(command)));
             int[] commands = SocketUtils.parseInput(command);
-//            for (int i = 0; i < states.length; i++) {
-//                states[i].setIntensity(commands[i]);
-//            }
             curState = commands;
 
         }
