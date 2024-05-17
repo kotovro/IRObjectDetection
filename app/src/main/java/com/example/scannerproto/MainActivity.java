@@ -27,7 +27,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.scannerproto.anlaysis.helpers.drone_utils.UDPServer;
+import com.example.scannerproto.anlaysis.helpers.drone_utils.UDPServerDrone;
 import com.example.scannerproto.anlaysis.helpers.overlays.Chat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.overlays.StateTable;
@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     public static final Integer DECAY_TIME = 40;
     private StateTable table = new StateTable();
-    private UDPServer connection = new UDPServer();
+    private UDPServerDrone connection = new UDPServerDrone();
     public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
 
 

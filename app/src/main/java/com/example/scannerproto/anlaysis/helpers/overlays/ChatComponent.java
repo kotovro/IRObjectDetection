@@ -31,10 +31,21 @@ public class ChatComponent {
     }
 
     public void tick() {
+        if (time < 0) {
+            return;
+        }
         time--;
     }
 
     public boolean isOver() {
         return time <= 0;
+    }
+
+    public void resetTime() {
+        time = lifeTime;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

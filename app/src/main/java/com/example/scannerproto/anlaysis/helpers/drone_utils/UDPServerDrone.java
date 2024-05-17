@@ -10,25 +10,21 @@ import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
 
-public class UDPServer extends AsyncTask<Void, Void, Void> {
+public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
     private int serverPort = 8080;
     private DatagramSocket serverSocket;
     private byte[] receiveData = new byte[1024];
-    private DroneActionState[] states = new DroneActionState[4];
 
     private int[] prevState = new int[4];
     private int[] curState = new int[4];
 
     private DroneMovements[] ports = new DroneMovements[4];
 
-    public UDPServer() {
+    public UDPServerDrone() {
         try {
             serverSocket = new DatagramSocket(serverPort);
         } catch (SocketException e) {
             throw new RuntimeException(e);
-        }
-        for (int i = 0; i < states.length; i++) {
-            states[i] = new DroneActionState(0);
         }
         ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left);
         ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null);
@@ -49,12 +45,11 @@ public class UDPServer extends AsyncTask<Void, Void, Void> {
             Log.println(Log.VERBOSE, TAG, Arrays.toString(SocketUtils.parseInput(command)));
             int[] commands = SocketUtils.parseInput(command);
             curState = commands;
-
         }
     }
 
     public void updateChat(Chat chat) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < curState.length; i++) {
             if (curState[i] != prevState[i]) {
                 chat.addMessage(ports[i].getMessage(curState[i]), ports[i].getRect(curState[i]));
             }

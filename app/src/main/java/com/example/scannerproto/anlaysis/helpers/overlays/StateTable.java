@@ -5,8 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
-import com.example.scannerproto.anlaysis.helpers.drone_utils.DroneActionState;
-
 public class StateTable {
     String[] messages = new String[4];
     Paint textPaint;
@@ -26,26 +24,12 @@ public class StateTable {
         messages[3] = "Поворот по часовой";
     }
 
-    public void drawTable(Canvas canvas, DroneActionState[] states) {
-        int textSize = (int) textPaint.getTextSize();
-        Rect rect = new Rect();
-        for (int i = 0; i < messages.length; i++) {
-            rect.set(400, 310 + i * textSize * 12 / 10, 1024, 310 + (i + 1) * textSize * 12 / 10);
-            drawComponent(canvas, textPaint, backPaint, rect, messages[i], states[i]);
-        }
-    }
-
-    private void drawComponent(Canvas canvas, Paint textPaint, Paint backPaint, Rect rect, String text, DroneActionState state) {
+    private void drawComponent(Canvas canvas, Paint textPaint, Paint backPaint, Rect rect, String text) {
         int textX = rect.left + 5;
         int textY = rect.bottom - (rect.bottom - rect.top - (int) textPaint.getTextSize()) / 2;
 
-        backPaint.setColor(state.getColor());
         backPaint.setAlpha(127);
         canvas.drawRect(rect, backPaint);
         canvas.drawText(text, textX, textY, textPaint);
-    }
-
-    public void drawCurrentState(Canvas canvas, DroneActionState state) {
-
     }
 }

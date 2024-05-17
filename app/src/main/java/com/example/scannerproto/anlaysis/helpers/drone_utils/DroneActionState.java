@@ -1,9 +1,6 @@
 package com.example.scannerproto.anlaysis.helpers.drone_utils;
 
-import android.animation.ArgbEvaluator;
 import android.graphics.Color;
-
-import com.google.android.material.animation.ArgbEvaluatorCompat;
 
 public class DroneActionState {
 
