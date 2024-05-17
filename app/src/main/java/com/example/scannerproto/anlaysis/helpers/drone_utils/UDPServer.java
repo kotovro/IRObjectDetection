@@ -1,6 +1,18 @@
 package com.example.scannerproto.anlaysis.helpers.drone_utils;
 
 import static android.content.ContentValues.TAG;
+import static android.graphics.Color.BLUE;
+import static android.graphics.Color.CYAN;
+import static android.graphics.Color.DKGRAY;
+import static android.graphics.Color.GRAY;
+import static android.graphics.Color.GREEN;
+import static android.graphics.Color.LTGRAY;
+import static android.graphics.Color.MAGENTA;
+import static android.graphics.Color.RED;
+import static android.graphics.Color.TRANSPARENT;
+import static android.graphics.Color.WHITE;
+import static android.graphics.Color.YELLOW;
+
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -30,10 +42,10 @@ public class UDPServer extends AsyncTask<Void, Void, Void> {
         for (int i = 0; i < states.length; i++) {
             states[i] = new DroneActionState(0);
         }
-        ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left);
-        ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null);
-        ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", DroneMovements.bottom, null, DroneMovements.top);
-        ports[3] = new DroneMovements("Против часовой", "Остановка поворота", "По часовой", null, null, null);
+        ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left, LTGRAY, WHITE, DKGRAY);
+        ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null, DKGRAY, GRAY, CYAN);
+        ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", DroneMovements.bottom, null, DroneMovements.top, TRANSPARENT, BLUE, MAGENTA);
+        ports[3] = new DroneMovements("Против часовой", "Остановка поворота", "По часовой", null, null, null, YELLOW, GREEN, RED);
     }
 
     @Override

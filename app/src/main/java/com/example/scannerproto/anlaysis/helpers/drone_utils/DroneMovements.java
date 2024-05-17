@@ -1,5 +1,6 @@
 package com.example.scannerproto.anlaysis.helpers.drone_utils;
 
+import android.graphics.Color;
 import android.graphics.Rect;
 
 public class DroneMovements {
@@ -11,6 +12,10 @@ public class DroneMovements {
     private Rect posRect;
     private Rect zeroRect;
 
+    private Color nRectCol;
+    private Color zRectCol;
+    private Color pRectCol;
+
     public static Rect left = new Rect(10, 375, 100, 375 + 15 * 12 / 10);
     public static Rect right = new Rect(600, 375, 700, 375 + 15 * 12 / 10);
     public static Rect top = new Rect(275, 250, 350, 250 + 15 * 12 / 10);
@@ -18,7 +23,7 @@ public class DroneMovements {
 
 
 
-    public DroneMovements(String forNeg, String forZero, String forPos, Rect negRect, Rect zeroRect, Rect posRect) {
+    public DroneMovements(String forNeg, String forZero, String forPos, Rect negRect, Rect zeroRect, Rect posRect, int nRectCol, int zRectCol, int pRectCol) {
         this.forNeg = forNeg;
         this.forZero = forZero;
         this.forPos = forPos;
