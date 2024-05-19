@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     public static final Integer DECAY_TIME = 40;
     private StateTable table = new StateTable();
     private UDPServerDrone connection = new UDPServerDrone();
-    public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
+    public static volatile AtomicBoolean isChat = new AtomicBoolean(true);
 
 
     @SuppressLint("MissingInflatedId")
