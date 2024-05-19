@@ -5,6 +5,8 @@ import static android.content.ContentValues.TAG;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.scannerproto.anlaysis.helpers.overlays.StaticChat;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,29 +15,22 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 public class ServerConnection extends AsyncTask<Void, Void, Void> {
     private Socket socket;
 
-    private String hostName = "192.168.31.5";
+    private String hostName = "192.168.31.6";
     private int portNumber = 8000;
     private BufferedReader in;
     private PrintWriter out;
-    private DroneActionState[] states = new DroneActionState[8];
+
+    private int[] prevState = new int[5];
+    private int[] curState = new int[5];
 
     public ServerConnection() {
-        for (int i = 0; i < states.length; i++) {
-            states[i] = new DroneActionState(0);
+    }
 
-        }
-    }
-    public ServerConnection(String hostName, int portNumber) {
-        this.hostName = hostName;
-        this.portNumber = portNumber;
-        for (int i = 0; i < states.length; i++) {
-            states[i] = new DroneActionState(0);
-        }
-    }
     @Override
     protected Void doInBackground(Void... voids) {
         init();
@@ -63,7 +58,7 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
     }
 
     public void register() {
-        String name = "Drone_status";
+        String name = "Hand_status";
         char[] charName = SocketUtils.stringToChar(name);
         char[] len = SocketUtils.lenToChar(name.length());
 
@@ -71,26 +66,31 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
         out.flush();
         out.print(charName);
         out.flush();
-
-//        out.close();
     }
 
     public void updateStates() {
         try {
             if (in.ready()) {
-                char[] input = new char[32];
+                char[] input = new char[20];
                 while (in.ready()) {
                     in.read(input);
                 }
 
-                SocketUtils.updateCharsToState(input, states);
+                prevState = curState;
+                curState = SocketUtils.byteToInt(SocketUtils.toBytes(input));
+                Log.println(Log.VERBOSE, TAG, Arrays.toString(curState));
             }
         } catch (IOException e) {
             throw new RuntimeException("Socket read error");
         }
     }
 
-    public DroneActionState[] getStates() {
-        return states;
+    public void updateChat(StaticChat chat) {
+        for (int i = 0; i < curState.length; i++) {
+            if (curState[i] != prevState[i]) {
+                chat.update(i, FingerStatus.values()[i].getMessage(curState[i]));
+            }
+        }
+        prevState = curState;
     }
 }

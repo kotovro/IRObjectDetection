@@ -27,10 +27,12 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.scannerproto.anlaysis.helpers.drone_utils.ServerConnection;
 import com.example.scannerproto.anlaysis.helpers.drone_utils.UDPServerDrone;
 import com.example.scannerproto.anlaysis.helpers.overlays.Chat;
 import com.example.scannerproto.anlaysis.helpers.DetectionBound;
 import com.example.scannerproto.anlaysis.helpers.overlays.StateTable;
+import com.example.scannerproto.anlaysis.helpers.overlays.StaticChat;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,12 +48,13 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap bitmap;
     private final int[] rgba = new int[1920 * 1080];  //todo
     private final Chat chat = new Chat();
+    private final StaticChat staticChat = new StaticChat();
     public static AtomicBoolean isNewObjectFound = new AtomicBoolean(false);
     public static final Integer DECAY_TIME = 40;
     private StateTable table = new StateTable();
     private UDPServerDrone connection = new UDPServerDrone();
+    private ServerConnection handConnection = new ServerConnection();
     public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
-
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -68,11 +71,7 @@ public class MainActivity extends AppCompatActivity {
         cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
-        //get server data from extras
-//        String serverIP = getIntent().getStringExtra("ServerIP");
-//        String port = getIntent().getStringExtra("Port");
-//        int number = Integer.parseInt(port);
-//        connection = new ServerConnection(serverIP, number);
+        handConnection.execute();
         connection.execute();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -138,13 +137,9 @@ public class MainActivity extends AppCompatActivity {
                                 chat.tick();
                             }
                             else {
-
-//                                table.drawTable(canvas);
+                                staticChat.drawChat(new Canvas(newBitmap));
+                                staticChat.tick();
                             }
-                            Log.println(Log.VERBOSE, TAG, "Is chat enabled: " + isChat.get());
-//                            connection.updateStates();
-//                            table.drawTable(new Canvas(newBitmap), connection.getStates());
-//                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 
                             Bitmap temp = DetectionBound.prepareBitmap(newBitmap);
                             preview.setImageBitmap(newBitmap);
