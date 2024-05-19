@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private StateTable table = new StateTable();
     private UDPServerDrone connection = new UDPServerDrone();
     private ServerConnection handConnection = new ServerConnection();
-    public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
+    public static volatile AtomicBoolean isChat = new AtomicBoolean(true);
 
     @SuppressLint("MissingInflatedId")
     @Override
