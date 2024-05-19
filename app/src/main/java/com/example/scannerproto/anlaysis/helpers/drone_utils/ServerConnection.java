@@ -88,7 +88,7 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
     public void updateChat(StaticChat chat) {
         for (int i = 0; i < curState.length; i++) {
             if (curState[i] != prevState[i]) {
-                chat.update(i, FingerStatus.values()[i].getMessage(curState[i]));
+                chat.update(i, FingerStatus.values()[i].getMessage(curState[i]), curState[i]);
             }
         }
         prevState = curState;

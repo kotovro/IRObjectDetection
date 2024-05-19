@@ -12,6 +12,7 @@ import java.util.LinkedList;
 public class StaticChat {
     LinkedList<ChatComponent> messages = new LinkedList<>();
     LinkedList<FingerStatus> fingers = new LinkedList<>();
+    int[] intensities = new int[5];
     Paint textPaint;
     Paint backPaint;
 
@@ -30,6 +31,10 @@ public class StaticChat {
         fingers.add(FingerStatus.RING);
         fingers.add(FingerStatus.PINKIE);
         fingers.add(FingerStatus.THUMB);
+
+        for (int i = 0; i < 5; i++) {
+            addMessage("");
+        }
     }
 
     public void addMessage(String message) {
@@ -42,6 +47,7 @@ public class StaticChat {
         Rect rect = new Rect();
         for (int i = 0; i < messages.size(); i++) {
             rect.set(500, 250 + i * textSize * 12 / 10, 1024, 250 + (i + 1) * textSize * 12 / 10);
+            backPaint.setColor(fingers.get(i).getColor(intensities[i]));
             messages.get(i).drawComponent(canvas, textPaint, backPaint, rect);
         }
     }
@@ -52,8 +58,9 @@ public class StaticChat {
         }
     }
 
-    public void update(int pos, String text) {
+    public void update(int pos, String text, int intensity) {
         messages.get(pos).resetTime();
         messages.get(pos).setText(text);
+        intensities[pos] = intensity;
     }
 }
