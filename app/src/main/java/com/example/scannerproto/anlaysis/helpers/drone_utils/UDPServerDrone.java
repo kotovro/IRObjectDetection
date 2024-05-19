@@ -55,6 +55,7 @@ public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
                 throw new RuntimeException(e);
             }
             String command = new String(receivePacket.getData(), 0, receivePacket.getLength());
+//            Log.println(Log.VERBOSE, TAG, "New message");
             Log.println(Log.VERBOSE, TAG, Arrays.toString(SocketUtils.parseInput(command)));
             int[] commands = SocketUtils.parseInput(command);
             curState = commands;
@@ -64,7 +65,7 @@ public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
     public void updateChat(Chat chat) {
         for (int i = 0; i < curState.length; i++) {
             if (curState[i] != prevState[i]) {
-                chat.addMessage(ports[i].getMessage(curState[i]), ports[i].getRect(curState[i]));
+                chat.addMessage(ports[i].getMessage(curState[i]), ports[i].getRect(curState[i]), ports[i].getColor(curState[i]));
             }
         }
         prevState = curState;

@@ -3,6 +3,7 @@ package com.example.scannerproto.anlaysis.helpers.drone_utils;
 import android.graphics.Color;
 import android.graphics.Rect;
 
+//refactor it into enum
 public class DroneMovements {
     private String forNeg;
     private String forZero;
@@ -12,9 +13,9 @@ public class DroneMovements {
     private Rect posRect;
     private Rect zeroRect;
 
-    private Color nRectCol;
-    private Color zRectCol;
-    private Color pRectCol;
+    public int nRectCol;
+    public   int zRectCol;
+    public int pRectCol;
 
     public static Rect left = new Rect(10, 375, 100, 375 + 15 * 12 / 10);
     public static Rect right = new Rect(600, 375, 700, 375 + 15 * 12 / 10);
@@ -30,6 +31,9 @@ public class DroneMovements {
         this.negRect = negRect;
         this.zeroRect = zeroRect;
         this.posRect = posRect;
+        this.nRectCol = nRectCol;
+        this.zRectCol = zRectCol;
+        this.pRectCol = pRectCol;
     }
 
     public String getMessage(int intensity) {
@@ -48,5 +52,14 @@ public class DroneMovements {
             return posRect;
         }
         return negRect;
+    }
+
+    public int getColor(int intensity) {
+        if (intensity == 0) {
+            return zRectCol;
+        } else if (intensity > 0) {
+            return pRectCol;
+        }
+        return nRectCol;
     }
 }

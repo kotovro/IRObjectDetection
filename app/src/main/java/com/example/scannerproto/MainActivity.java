@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
 //                                table.drawTable(canvas);
                             }
-                            Log.println(Log.VERBOSE, TAG, "Is chat enabled: " + isChat.get());
+//                            Log.println(Log.VERBOSE, TAG, "Is chat enabled: " + isChat.get());
 //                            connection.updateStates();
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());
 //                            table.drawTable(new Canvas(newBitmap), connection.getStates());

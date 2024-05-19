@@ -10,6 +10,9 @@ import java.util.LinkedList;
 public class Chat {
     LinkedList<ChatComponent> messages = new LinkedList<>();
     LinkedList<ChatComponent> specialMessages = new LinkedList<>();
+
+    LinkedList<Integer> messageColors = new LinkedList<>();
+    LinkedList<Integer> specialMessageColors = new LinkedList<>();
     LinkedList<Rect> rects = new LinkedList<>();
     Paint textPaint;
     Paint backPaint;
@@ -28,12 +31,14 @@ public class Chat {
         backPaint.setAlpha(127);
     }
 
-    public void addMessage(String message, Rect rect) {
+    public void addMessage(String message, Rect rect, int color) {
         if (rect != null) {
             specialMessages.addLast(new ChatComponent(message));
             rects.addLast(rect);
+            specialMessageColors.addLast(color);
         } else {
             messages.addLast(new ChatComponent(message));
+            messageColors.addLast(color);
         }
     }
 
@@ -43,10 +48,13 @@ public class Chat {
         Rect rect = new Rect();
         for (int i = 0; i < messages.size(); i++) {
             rect.set(500, 250 + i * textSize * 12 / 10, 1024, 250 + (i + 1) * textSize * 12 / 10);
+            backPaint.setColor(messageColors.get(messages.size() - 1 - i));
             messages.get(messages.size() - 1 - i).drawComponent(canvas, textPaint, backPaint, rect);
         }
         for (int i = 0; i < specialMessages.size(); i++) {
+            backPaint.setColor(specialMessageColors.get(i));
             specialMessages.get(i).drawComponent(canvas, textPaint, backPaint, rects.get(i));
+
         }
     }
 
