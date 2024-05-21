@@ -13,6 +13,7 @@ import static android.graphics.Color.TRANSPARENT;
 import static android.graphics.Color.WHITE;
 import static android.graphics.Color.YELLOW;
 
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -40,7 +41,7 @@ public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
         }
 
         ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left, LTGRAY, WHITE, DKGRAY);
-        ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null, DKGRAY, GRAY, CYAN);
+        ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null, Color.BLACK, GRAY, CYAN);
         ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", DroneMovements.bottom, null, DroneMovements.top, TRANSPARENT, BLUE, MAGENTA);
         ports[3] = new DroneMovements("Против часовой", "Остановка поворота", "По часовой", null, null, null, YELLOW, GREEN, RED);
     }

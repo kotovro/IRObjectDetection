@@ -1,7 +1,9 @@
 package com.example.scannerproto.anlaysis.helpers.drone_utils;
 
+import android.graphics.Color;
+
 public enum FingerStatus {
-    THUMB("Большой согнут", "Большой разогнут", "Большой разогнут", 0, 0, 0),
+    THUMB("Большой согнут", "Большой разогнут", "Большой разогнут", Color.BLUE, Color.RED, Color.BLACK),
     INDEX("Указательный согнут", "Указательный разогнут", "Указательный разогнут", 0, 0, 0),
     MIDDLE("Средний согнут", "Средний разогнут", "Средний разогнут", 0, 0, 0),
     RING("Безымянный согнут", "Безымянный разогнут", "Безымянный разогнут", 0, 0, 0),
@@ -28,7 +30,7 @@ public enum FingerStatus {
     public String getMessage(int intensity) {
         if (intensity == 0) {
             return openedText;
-        } else if (intensity == 1) {
+        } else if (intensity == 16777216) {
             return closedText;
         }
         return halfOpenedText;
@@ -37,7 +39,7 @@ public enum FingerStatus {
     public int getColor(int intensity) {
         if (intensity == 0) {
             return openedColor;
-        } else if (intensity == 1) {
+        } else if (intensity == 16777216) {
             return closedColor;
         }
         return halfOpenedColor;

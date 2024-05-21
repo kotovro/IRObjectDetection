@@ -3,6 +3,7 @@ package com.example.scannerproto.anlaysis.helpers.drone_utils;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class SocketUtils {
@@ -30,9 +31,9 @@ public class SocketUtils {
 
     public static byte[] toBytes(char[] chars) {
         CharBuffer charBuffer = CharBuffer.wrap(chars);
-        ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
+        ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(charBuffer);
         byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
-                byteBuffer.position(), byteBuffer.limit());
+                byteBuffer.position(), 20);
         Arrays.fill(byteBuffer.array(), (byte) 0); // clear sensitive data
         return bytes;
     }

@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                                 chat.tick();
                             }
                             else {
+                                handConnection.updateChat(staticChat);
                                 staticChat.drawChat(new Canvas(newBitmap));
                                 staticChat.tick();
                             }

@@ -47,7 +47,7 @@ public class StaticChat {
         Rect rect = new Rect();
         for (int i = 0; i < messages.size(); i++) {
             rect.set(500, 250 + i * textSize * 12 / 10, 1024, 250 + (i + 1) * textSize * 12 / 10);
-            backPaint.setColor(fingers.get(i).getColor(intensities[i]));
+            backPaint.setColor(fingers.get(messages.size() - 1 - i).getColor(intensities[i]));
             messages.get(i).drawComponent(canvas, textPaint, backPaint, rect);
         }
     }

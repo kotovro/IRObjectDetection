@@ -31,7 +31,7 @@ public class ChatComponent {
     }
 
     public void tick() {
-        if (time < 0) {
+        if (time <= 0) {
             return;
         }
         time--;
