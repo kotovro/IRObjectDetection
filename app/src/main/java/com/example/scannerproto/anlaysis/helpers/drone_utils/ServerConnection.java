@@ -20,7 +20,7 @@ import java.util.Arrays;
 public class ServerConnection extends AsyncTask<Void, Void, Void> {
     private Socket socket;
 
-    private String hostName = "192.168.100.135";
+    private String hostName = "192.168.1.102";
     private int portNumber = 8000;
     private BufferedReader in;
     private PrintWriter out;

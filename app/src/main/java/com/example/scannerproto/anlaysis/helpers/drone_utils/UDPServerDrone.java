@@ -40,15 +40,16 @@ public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
             throw new RuntimeException(e);
         }
 
-        ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left, LTGRAY, WHITE, DKGRAY);
-        ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null, Color.BLACK, GRAY, CYAN);
-        ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", DroneMovements.bottom, null, DroneMovements.top, TRANSPARENT, BLUE, MAGENTA);
-        ports[3] = new DroneMovements("Против часовой", "Остановка поворота", "По часовой", null, null, null, YELLOW, GREEN, RED);
+        ports[0] = new DroneMovements("Вправо", "Боковое торможение", "Влево", DroneMovements.right, null, DroneMovements.left, Color.rgb(30, 40 , 30), Color.rgb(30, 80 , 30), Color.rgb(30, 120 , 30));
+        ports[1] = new DroneMovements("Назад", "Прямое торможение", "Вперед", null, null, null, Color.rgb(50, 50 , 100), Color.rgb(50, 50 , 150), Color.rgb(50, 50 , 200));
+        ports[2] = new DroneMovements("Вниз", "Вертикальное торможение", "Вверх", DroneMovements.bottom, null, DroneMovements.top, Color.rgb(50, 100 , 50), Color.rgb(50, 150 , 50), Color.rgb(50, 200 , 50));
+        ports[3] = new DroneMovements("Против часовой", "Остановка поворота", "По часовой", null, null, null, Color.rgb(100, 50 , 50), Color.rgb(150, 50, 50), Color.rgb(200, 50, 50));
     }
 
     @Override
     public Void doInBackground(Void... voids) {
         while (true) {
+            Log.println(Log.VERBOSE, TAG, "Is chat enabled: ");
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             try {
                 serverSocket.receive(receivePacket);
