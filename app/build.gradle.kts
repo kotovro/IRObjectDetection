@@ -37,6 +37,8 @@ dependencies {
     implementation(libs.jackson.base)
     implementation(libs.jackson.core)
     implementation(libs.jackson.databind)
+    implementation(libs.vision.common)
+    implementation(libs.play.services.mlkit.barcode.scanning)
     val room_version = "2.6.1"
 
     implementation("androidx.room:room-runtime:$room_version")
@@ -82,6 +84,7 @@ dependencies {
     implementation ("androidx.camera:camera-view:1.0.0-alpha14")
     // If you want to additionally use the CameraX Extensions library
     implementation ("androidx.camera:camera-extensions:1.0.0-alpha14")
-
+    //image classification
+    implementation ("com.google.mlkit:barcode-scanning:17.2.0")
 
 }

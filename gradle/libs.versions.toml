@@ -10,6 +10,9 @@ constraintlayout = "2.1.4"
 jacksonBase = "2.17.0"
 jacksonCore = "2.17.0"
 jacksonDatabind = "2.17.0"
+visionCommon = "17.3.0"
+playServicesMlkitBarcodeScanning = "18.3.0"
+objectDetectionCommon = "18.0.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,6 +25,9 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 jackson-base = { group = "com.fasterxml.jackson", name = "jackson-base", version.ref = "jacksonBase" }
 jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jacksonCore" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jacksonDatabind" }
+vision-common = { group = "com.google.mlkit", name = "vision-common", version.ref = "visionCommon" }
+play-services-mlkit-barcode-scanning = { group = "com.google.android.gms", name = "play-services-mlkit-barcode-scanning", version.ref = "playServicesMlkitBarcodeScanning" }
+object-detection-common = { group = "com.google.mlkit", name = "object-detection-common", version.ref = "objectDetectionCommon" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
