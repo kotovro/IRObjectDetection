@@ -3,12 +3,10 @@ package com.example.scannerproto;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
-import android.nfc.Tag;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -16,14 +14,9 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 
-import com.example.scannerproto.anlaysis.helpers.IObjectInfoGetter;
 import com.example.scannerproto.anlaysis.helpers.IObjectInfoSetter;
 import com.example.scannerproto.anlaysis.helpers.db.SQLiteInfoGetter;
-import com.example.scannerproto.anlaysis.helpers.db.SQLiteManager;
 import com.example.scannerproto.anlaysis.helpers.db.ThingWithId;
-
-import java.io.File;
-import java.io.IOException;
 
 public class AddObjectActivity extends AppCompatActivity {
 
@@ -70,10 +63,6 @@ public class AddObjectActivity extends AppCompatActivity {
             Toast.makeText(this, "Not enough info for object", Toast.LENGTH_SHORT).show();
         }
 
-    }
-    public void clearEditTexts() {
-        nameEditText.getText().clear();
-        infoEditText.getText().clear();
     }
 
 }

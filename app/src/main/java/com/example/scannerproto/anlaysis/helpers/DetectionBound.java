@@ -45,10 +45,10 @@ public class DetectionBound {
         Paint paint = new Paint();
         boolean isUnKnown = Objects.equals(objectInfo, null);
         paint.setColor(isUnKnown ? COLOR2 : COLOR);
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(5);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setAlpha(Math.min(255, 255 * 2 * lifeTime / MainActivity.DECAY_TIME));
+        paint.setStyle(Paint.Style.FILL);
+        paint.setAlpha(Math.min(150, 150 * 2 * lifeTime / MainActivity.DECAY_TIME));
 
 
         Path path = new Path();
@@ -67,21 +67,25 @@ public class DetectionBound {
 //        canvas.drawLine(barcode.getCornerPoints()[3].x, barcode.getCornerPoints()[3].y, barcode.getCornerPoints()[0].x, barcode.getCornerPoints()[0].y, paint);
 //        paint.setTextSize(50);
 
-        paint.setColor(isUnKnown ? COLOR2 : COLOR);
-        paint.setAlpha(Math.min(255, 255 * 2 * lifeTime / MainActivity.DECAY_TIME));
+        paint.setColor(isUnKnown ? COLOR2 : COLOR3);
+        paint.setAlpha(Math.min(150, 150 * 2 * lifeTime / MainActivity.DECAY_TIME));
 
-        int fontSize = (points[1].x - points[0].x) / 3;
+        int fontSize = (points[1].x - points[0].x) / 5;
         paint.setTextSize(fontSize);
         paint.setTextAlign(Paint.Align.LEFT);
 
-        canvas.drawText((isUnKnown ? "Неизвестный объект": objectInfo.getName()),
-                barcode.getCornerPoints()[0].x + 20,  barcode.getCornerPoints()[0].y + 20, paint);
+
+
         int separate = 12;
+
+
+        canvas.drawText((isUnKnown ? "Неизвестный объект": objectInfo.getName()),
+                barcode.getCornerPoints()[0].x - 40,  barcode.getCornerPoints()[0].y, paint);
 
         for (int i = 0; i < (objectInfo.getInfo().length() / separate) + 1; i++) {
             canvas.drawText((isUnKnown ? "Нет информации": objectInfo.getInfo()),
                     i * separate,  Math.min((i + 1) * separate, objectInfo.getInfo().length()),
-                    barcode.getCornerPoints()[0].x - OFFSET / 2,  barcode.getCornerPoints()[0].y + 50 + i * fontSize, paint);
+                    barcode.getCornerPoints()[0].x - 30,  barcode.getCornerPoints()[0].y + 50 + i * fontSize, paint);
         }
 
     }

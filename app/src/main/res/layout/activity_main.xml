@@ -22,6 +22,6 @@
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="150dp"
         android:onClick="onSettings"
-        android:text="Дрон" />
+        android:text="Детект" />
 
 </FrameLayout>

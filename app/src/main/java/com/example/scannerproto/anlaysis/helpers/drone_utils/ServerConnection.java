@@ -20,7 +20,7 @@ import java.util.Arrays;
 public class ServerConnection extends AsyncTask<Void, Void, Void> {
     private Socket socket;
 
-    private String hostName = "192.168.1.102";
+    private String hostName = "192.168.1.104";
     private int portNumber = 8000;
     private BufferedReader in;
     private PrintWriter out;
@@ -52,7 +52,7 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
             Log.println(Log.VERBOSE, TAG, "IO");
             throw new RuntimeException("Can not connect to socket");
         } catch (Exception e) {
-            Log.println(Log.VERBOSE, TAG, "NOOOOOOOOOOOOOOOOOOO");
+            Log.println(Log.VERBOSE, TAG, "Strange exception");
             throw new RuntimeException("Unexpected exception");
         }
     }
@@ -78,7 +78,6 @@ public class ServerConnection extends AsyncTask<Void, Void, Void> {
 
                 prevState = curState;
                 curState = SocketUtils.byteToInt(SocketUtils.toBytes(input));
-                Log.println(Log.VERBOSE, TAG, Arrays.toString(curState));
             }
         } catch (IOException e) {
             throw new RuntimeException("Socket read error");

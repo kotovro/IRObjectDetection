@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
     private UDPServerDrone connection = new UDPServerDrone();
     private ServerConnection handConnection = new ServerConnection();
-    public static volatile AtomicBoolean isChat = new AtomicBoolean(true);
+    public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
     private AtomicBoolean isDetecting = new AtomicBoolean(true);
 
     @SuppressLint("MissingInflatedId")
@@ -102,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         connection.execute();
         handConnection.execute();
+
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
@@ -126,12 +128,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSettings(View view){
+
         isChat.set(!isChat.get());
+        isDetecting.set(!isDetecting.get());
         Button btn = findViewById(R.id.button2);
-        if (isChat.get()) {
-            btn.setText("Дрон".toCharArray(), 0, 4);
+        if (isDetecting.get()) {
+            btn.setText("Детект".toCharArray(), 0, 6);
         } else {
-            btn.setText("Рука".toCharArray(), 0, 4);
+            if (isChat.get()) {
+                btn.setText("Дрон".toCharArray(), 0, 4);
+            } else {
+                btn.setText("Рука".toCharArray(), 0, 4);
+            }
         }
     }
 

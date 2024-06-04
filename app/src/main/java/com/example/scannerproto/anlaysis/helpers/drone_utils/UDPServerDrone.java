@@ -49,7 +49,6 @@ public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
     @Override
     public Void doInBackground(Void... voids) {
         while (true) {
-            Log.println(Log.VERBOSE, TAG, "Is chat enabled: ");
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             try {
                 serverSocket.receive(receivePacket);
@@ -58,11 +57,9 @@ public class UDPServerDrone extends AsyncTask<Void, Void, Void> {
             }
             String command = new String(receivePacket.getData(), 0, receivePacket.getLength());
 //            Log.println(Log.VERBOSE, TAG, "New message");
-            Log.println(Log.VERBOSE, TAG, Arrays.toString(SocketUtils.parseInput(command)));
             int[] commands = SocketUtils.parseInput(command);
             curState = commands;
 
-            Log.println(Log.VERBOSE, TAG, "Is chat enabled: ");
         }
     }
 
