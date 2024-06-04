@@ -47,7 +47,6 @@ import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
 
-import java.io.ObjectInputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +74,15 @@ public class MainActivity extends AppCompatActivity {
     private Map<ObjectDetectionResult, Integer> barcodeList = new ConcurrentHashMap<>();
     private UDPServerDrone connection = new UDPServerDrone();
     private ServerConnection handConnection = new ServerConnection();
-    public static volatile AtomicBoolean isChat = new AtomicBoolean(false);
-    private AtomicBoolean isDetecting = new AtomicBoolean(true);
+//    public AtomicBoolean isDrone = new AtomicBoolean(false);
+//    public AtomicBoolean isHand = new AtomicBoolean(false);
+//    private AtomicBoolean isDetecting = new AtomicBoolean(true);
+    private int currentState = 2;
+public class States {
+    public static final int DRONE = 0;
+    public static final int HAND  = 1;
+    public static final int BARCODE = 2;
+}
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -127,19 +133,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onSettings(View view){
-
-        isChat.set(!isChat.get());
-        isDetecting.set(!isDetecting.get());
+    public void onSettings(View view) {
         Button btn = findViewById(R.id.button2);
-        if (isDetecting.get()) {
-            btn.setText("Детект".toCharArray(), 0, 6);
-        } else {
-            if (isChat.get()) {
-                btn.setText("Дрон".toCharArray(), 0, 4);
-            } else {
-                btn.setText("Рука".toCharArray(), 0, 4);
-            }
+        if (currentState == States.BARCODE) {
+            btn.setText("Дрон");
+            currentState = States.DRONE;
+            return;
+        }
+        if (currentState == States.DRONE) {
+            btn.setText("Рука");
+            currentState = States.HAND;
+            return;
+        }
+        if (currentState == States.HAND) {
+            btn.setText("Детект");
+            currentState = States.BARCODE;
         }
     }
 
@@ -166,15 +174,16 @@ public class MainActivity extends AppCompatActivity {
                             Bitmap newBitmap = DetectionBound.extractBitmap(bitmap);
                             InputImage inputImage = InputImage.fromBitmap(newBitmap, 0);
 
-                            if (isDetecting.get()) {
+                            for (ObjectDetectionResult bc: barcodeList.keySet()) {
+                                Integer time = barcodeList.get(bc);
+                                barcodeList.put(bc, time - 1);
+                                if (time == 0) {
+                                    barcodeList.remove(bc);
+                                }
+                            }
+                            if (currentState == States.BARCODE) {
                                 barcodeScanner.process(inputImage).addOnSuccessListener(barcodes -> {
-                                    for (ObjectDetectionResult bc: barcodeList.keySet()) {
-                                        Integer time = barcodeList.get(bc);
-                                        barcodeList.put(bc, time - 1);
-                                        if (time < 0) {
-                                            barcodeList.remove(bc);
-                                        }
-                                    }
+
 
                                     if (!barcodes.isEmpty()) {
                                         Point screenCenter = new Point(inputImage.getWidth() / 2, inputImage.getHeight() / 2);
@@ -243,12 +252,13 @@ public class MainActivity extends AppCompatActivity {
 
                             preview.setImageBitmap(newBitmap);
 
-                            if (isChat.get()) {
+                            if (currentState == States.DRONE) {
                                 connection.updateChat(chat);
                                 chat.drawChat(new Canvas(newBitmap));
                                 chat.tick();
                             }
-                            else {
+
+                            else if (currentState == States.HAND){
                                 handConnection.updateChat(staticChat);
                                 staticChat.drawChat(new Canvas(newBitmap));
                                 staticChat.tick();
